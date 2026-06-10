@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- ============================================================
+       شبكة الأزرق نت — صفحة الأخطاء العامة
+       MikroTik RouterOS Captive Portal — error.html
+       ============================================================ -->
+  <title>الأزرق نت — خطأ</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>html{display:none}</style>
+  <script>if(self===top)document.documentElement.style.display='block';else top.location=self.location;</script>
+</head>
+<body class="page-error">
+  <div class="centered-card card--error">
+
+    <div class="result-icon result-icon--error" aria-hidden="true">
+      <svg viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="3"/>
+        <path d="M40 26v18" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="40" cy="52" r="2.5" fill="currentColor"/>
+      </svg>
+    </div>
+
+    <h1 class="result-title">حدث خطأ</h1>
+
+    <!-- MikroTik: $(error)$ -->
+    <div class="error-banner error-banner--inline" role="alert">
+      <span id="errMsg"><!-- $(error)$ --></span>
+    </div>
+
+    <!-- MikroTik: $(error-orig)$ — الخطأ الأصلي إن وُجد -->
+    <p class="error-orig-note" id="errOrig"><!-- $(error-orig)$ --></p>
+
+    <div class="action-row">
+      <a href="$(link-login)$" class="btn-connect">العودة لتسجيل الدخول</a>
+    </div>
+
+    <footer class="portal-footer">
+      <p>شبكة <strong>الأزرق نت</strong></p>
+      <p class="footer-eng">تصميم وبرمجة: <span class="eng-name">المهندس عبدالقدوس</span></p>
+    </footer>
+  </div>
+</body>
+</html>

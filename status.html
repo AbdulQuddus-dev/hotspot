@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- ============================================================
+       شبكة الأزرق نت — صفحة الحالة المستمرة
+       MikroTik RouterOS Captive Portal — status.html
+       تُحدَّث دورياً بواسطة المتصفح (meta refresh)
+       ============================================================ -->
+
+  <title>الأزرق نت — حالة الاتصال</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- تحديث الصفحة كل 60 ثانية لتحديث بيانات الـ MikroTik -->
+  <meta http-equiv="refresh" content="60" />
+
+  <style>html{display:none}</style>
+  <script>if(self===top)document.documentElement.style.display='block';else top.location=self.location;</script>
+</head>
+<body class="page-status">
+
+  <div class="centered-card card--status">
+
+    <!-- شعار الشبكة -->
+    <div class="brand brand--small">
+      <div class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2.5"/><path d="M10 32 Q32 8 54 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M16 38 Q32 20 48 38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="32" cy="45" r="4" fill="currentColor"/></svg>
+      </div>
+      <h1 class="brand-name brand-name--sm">الأزرق نت</h1>
+    </div>
+
+    <!-- مؤشر الاتصال الحي -->
+    <div class="connection-badge" aria-label="متصل">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      متصل الآن
+    </div>
+
+    <!-- ── بيانات الجلسة (تُعيّنها MikroTik تلقائياً) ── -->
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <div class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">المستخدم</span>
+          <!-- MikroTik: $(username)$ -->
+          <strong class="stat-value" id="statUser"><!-- $(username)$ --></strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">الوقت المتبقي</span>
+          <!-- MikroTik: $(session-time-left)$ -->
+          <strong class="stat-value" id="statTime"><!-- $(session-time-left)$ --></strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">البيانات المستهلكة</span>
+          <!-- MikroTik: $(bytes-in)$ / $(bytes-out)$ -->
+          <strong class="stat-value" id="statData"><!-- $(bytes-in)$ --></strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.08 4.18 2 2 0 015 2h3a2 2 0 012 1.72c.12 1 .37 1.97.74 2.9a2 2 0 01-.45 2.11L9.09 9.91A16 16 0 0014.09 14.91l1.18-1.2a2 2 0 012.11-.45c.93.37 1.9.62 2.9.74A2 2 0 0122 16.92z" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">عنوان الـ IP</span>
+          <!-- MikroTik: $(ip)$ -->
+          <strong class="stat-value stat-value--mono" id="statIP"><!-- $(ip)$ --></strong>
+        </div>
+      </div>
+
+    </div><!-- /stats-grid -->
+
+    <!-- ── شريط التقدم الزمني ── -->
+    <div class="progress-section" aria-label="نسبة الوقت المستهلك">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-labels">
+        <span>بداية الجلسة</span>
+        <span id="progressPct">0%</span>
+        <span>نهاية الوقت</span>
+      </div>
+    </div>
+
+    <!-- ── أزرار التحكم ── -->
+    <div class="action-row action-row--status">
+      <!-- زر قطع الاتصال -->
+      <!-- MikroTik: link-logout -->
+      <a href="$(link-logout)$" class="btn-danger" id="logoutBtn" onclick="return confirmLogout()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        قطع الاتصال
+      </a>
+
+      <!-- زر تجديد البيانات -->
+      <button class="btn-outline" onclick="window.location.reload()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 4 23 10 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20.5 15A9 9 0 1123 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        تحديث
+      </button>
+    </div>
+
+    <footer class="portal-footer">
+      <p>شبكة <strong>الأزرق نت</strong></p>
+      <p class="footer-eng">تصميم وبرمجة: <span class="eng-name">المهندس عبدالقدوس</span></p>
+    </footer>
+  </div><!-- /centered-card -->
+
+  <script>
+    /** تأكيد قطع الاتصال */
+    function confirmLogout() {
+      return confirm('هل أنت متأكد من رغبتك في قطع الاتصال؟');
+    }
+
+    /**
+     * محاولة حساب نسبة الوقت المستهلك
+     * MikroTik يوفر $(session-time-left)$ بصيغة HH:MM:SS
+     * وكذلك $(session-time-limit)$ — نحسب النسبة منهما
+     */
+    (function updateProgress() {
+      function parseHMS(str) {
+        if (!str || str === '0' || str === '') return 0;
+        var parts = String(str).split(':').map(Number);
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        return parseInt(str) || 0;
+      }
+
+      /* القيم تُعيّنها MikroTik — قيم افتراضية للعرض المحلي فقط */
+      var timeLeftRaw  = document.getElementById('statTime').textContent.trim();
+      var timeLimitSec = 3600; /* افتراضي: ساعة واحدة */
+
+      var timeLeftSec  = parseHMS(timeLeftRaw);
+      var usedSec      = Math.max(0, timeLimitSec - timeLeftSec);
+      var pct          = Math.min(100, Math.round((usedSec / timeLimitSec) * 100));
+
+      var fill = document.getElementById('progressFill');
+      var pctEl = document.getElementById('progressPct');
+      if (fill) fill.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = pct + '%';
+    })();
+  </script>
+
+</body>
+</html>

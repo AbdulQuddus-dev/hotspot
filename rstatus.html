@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- ============================================================
+       شبكة الأزرق نت — حالة العميل المتقدمة (RADIUS)
+       MikroTik RouterOS Captive Portal — rstatus.html
+       ============================================================ -->
+  <title>الأزرق نت — الحالة المتقدمة</title>
+  <link rel="stylesheet" href="style.css" />
+  <meta http-equiv="refresh" content="30" />
+  <style>html{display:none}</style>
+  <script>if(self===top)document.documentElement.style.display='block';else top.location=self.location;</script>
+</head>
+<body class="page-rstatus">
+
+  <div class="centered-card card--rstatus">
+
+    <div class="brand brand--small">
+      <div class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2.5"/><path d="M10 32 Q32 8 54 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M16 38 Q32 20 48 38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="32" cy="45" r="4" fill="currentColor"/></svg>
+      </div>
+      <h1 class="brand-name brand-name--sm">الأزرق نت — تفاصيل متقدمة</h1>
+    </div>
+
+    <div class="connection-badge">
+      <span class="pulse-dot"></span>
+      متصل — RADIUS Session
+    </div>
+
+    <!-- ── جدول البيانات التفصيلية ── -->
+    <div class="detail-table">
+
+      <div class="detail-row">
+        <span class="detail-key">المستخدم</span>
+        <!-- MikroTik: $(username)$ -->
+        <span class="detail-val"><!-- $(username)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">عنوان IP</span>
+        <!-- MikroTik: $(ip)$ -->
+        <span class="detail-val detail-val--mono"><!-- $(ip)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">MAC Address</span>
+        <!-- MikroTik: $(mac)$ -->
+        <span class="detail-val detail-val--mono"><!-- $(mac)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">وقت الجلسة</span>
+        <!-- MikroTik: $(session-time)$ -->
+        <span class="detail-val"><!-- $(session-time)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">الوقت المتبقي</span>
+        <!-- MikroTik: $(session-time-left)$ -->
+        <span class="detail-val"><!-- $(session-time-left)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">بيانات واردة</span>
+        <!-- MikroTik: $(bytes-in)$ -->
+        <span class="detail-val"><!-- $(bytes-in)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">بيانات صادرة</span>
+        <!-- MikroTik: $(bytes-out)$ -->
+        <span class="detail-val"><!-- $(bytes-out)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">حزم واردة</span>
+        <!-- MikroTik: $(packets-in)$ -->
+        <span class="detail-val"><!-- $(packets-in)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">حزم صادرة</span>
+        <!-- MikroTik: $(packets-out)$ -->
+        <span class="detail-val"><!-- $(packets-out)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">معرف الجلسة</span>
+        <!-- MikroTik: $(session-id)$ -->
+        <span class="detail-val detail-val--mono detail-val--small"><!-- $(session-id)$ --></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">Uptime الـ Router</span>
+        <!-- MikroTik: $(uptime)$ -->
+        <span class="detail-val"><!-- $(uptime)$ --></span>
+      </div>
+
+    </div><!-- /detail-table -->
+
+    <div class="action-row">
+      <!-- MikroTik: link-logout -->
+      <a href="$(link-logout)$" class="btn-danger" onclick="return confirm('قطع الاتصال؟')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        قطع الاتصال
+      </a>
+      <button class="btn-outline" onclick="window.location.reload()">تحديث</button>
+    </div>
+
+    <footer class="portal-footer">
+      <p>شبكة <strong>الأزرق نت</strong></p>
+      <p class="footer-eng">تصميم وبرمجة: <span class="eng-name">المهندس عبدالقدوس</span></p>
+    </footer>
+  </div>
+
+</body>
+</html>

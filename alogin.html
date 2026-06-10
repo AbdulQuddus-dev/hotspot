@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- ============================================================
+       شبكة الأزرق نت — صفحة نجاح تسجيل الدخول
+       MikroTik RouterOS Captive Portal — alogin.html
+       تُفتح بعد المصادقة الناجحة
+       ============================================================ -->
+
+  <title>الأزرق نت — مرحباً بك!</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- إعادة التوجيه التلقائية بعد 5 ثوانٍ إلى الوجهة الأصلية -->
+  <!-- MikroTik: link-orig هو الصفحة التي كان المستخدم يحاول فتحها -->
+  <meta http-equiv="refresh" content="5; url=$(link-orig)$" />
+
+  <style>html{display:none}</style>
+  <script>if(self===top)document.documentElement.style.display='block';else top.location=self.location;</script>
+</head>
+<body class="page-alogin">
+
+  <div class="centered-card card--success">
+
+    <!-- أيقونة النجاح -->
+    <div class="result-icon result-icon--success" aria-hidden="true">
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="38" stroke="currentColor" stroke-width="3"/>
+        <path d="M24 40l12 12 20-20" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h1 class="result-title">تم الاتصال بنجاح!</h1>
+    <p class="result-subtitle">
+      مرحباً بك في شبكة <strong>الأزرق نت</strong>
+    </p>
+
+    <!-- اسم المستخدم الذي يُعيّنه MikroTik -->
+    <div class="user-badge">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <span><!-- $(username)$ --></span>
+    </div>
+
+    <!-- عداد إعادة التوجيه -->
+    <p class="redirect-note">
+      سيتم توجيهك خلال <span id="countdown">5</span> ثوانٍ...
+    </p>
+
+    <!-- روابط سريعة -->
+    <div class="action-row">
+      <a href="$(link-orig)$" class="btn-connect">انتقل الآن</a>
+      <a href="$(link-status)$" class="btn-outline">عرض الحالة</a>
+    </div>
+
+    <footer class="portal-footer">
+      <p>شبكة <strong>الأزرق نت</strong></p>
+      <p class="footer-eng">تصميم وبرمجة: <span class="eng-name">المهندس عبدالقدوس</span></p>
+    </footer>
+  </div>
+
+  <script>
+    /* عداد إعادة التوجيه */
+    var sec = 5;
+    var el = document.getElementById('countdown');
+    var timer = setInterval(function () {
+      sec--;
+      if (el) el.textContent = sec;
+      if (sec <= 0) {
+        clearInterval(timer);
+        window.location.href = '$(link-orig)$' || 'http://www.google.com';
+      }
+    }, 1000);
+  </script>
+
+</body>
+</html>

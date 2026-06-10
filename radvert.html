@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- ============================================================
+       شبكة الأزرق نت — صفحة الإعلانات قبل التوجيه
+       MikroTik RouterOS Captive Portal — radvert.html
+       ============================================================ -->
+  <title>الأزرق نت — عروض مميزة</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>html{display:none}</style>
+  <script>if(self===top)document.documentElement.style.display='block';else top.location=self.location;</script>
+</head>
+<body class="page-radvert">
+
+  <div class="centered-card card--advert">
+
+    <!-- شعار الشبكة -->
+    <div class="brand brand--small">
+      <div class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2.5"/><path d="M10 32 Q32 8 54 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M16 38 Q32 20 48 38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="32" cy="45" r="4" fill="currentColor"/></svg>
+      </div>
+      <h1 class="brand-name brand-name--sm">الأزرق نت</h1>
+    </div>
+
+    <p class="advert-eyebrow">عروض وخدمات</p>
+    <h2 class="advert-title">استمتع بتجربة إنترنت استثنائية</h2>
+
+    <!-- ── منطقة الإعلانات ─ عدّلها حسب احتياجاتك ── -->
+    <div class="advert-grid">
+
+      <div class="advert-card">
+        <div class="advert-badge">جديد</div>
+        <div class="advert-icon" aria-hidden="true">⚡</div>
+        <h3>باقة السرعة الفائقة</h3>
+        <p>تصفح بسرعة 50 ميجابت/ث بلا حدود</p>
+        <span class="advert-price">اسأل المزود</span>
+      </div>
+
+      <div class="advert-card advert-card--featured">
+        <div class="advert-badge advert-badge--gold">الأكثر طلباً</div>
+        <div class="advert-icon" aria-hidden="true">🌐</div>
+        <h3>باقة اليوم الكامل</h3>
+        <p>اتصال مستمر لمدة 24 ساعة كاملة</p>
+        <span class="advert-price">اسأل المزود</span>
+      </div>
+
+      <div class="advert-card">
+        <div class="advert-icon" aria-hidden="true">👨‍👩‍👧‍👦</div>
+        <h3>باقة العائلة</h3>
+        <p>اتصال متعدد الأجهزة لجميع أفراد الأسرة</p>
+        <span class="advert-price">اسأل المزود</span>
+      </div>
+
+    </div><!-- /advert-grid -->
+
+    <!-- عداد التوجيه التلقائي -->
+    <div class="countdown-bar">
+      <p>سيتم التوجيه تلقائياً خلال <strong id="adCountdown">10</strong> ثانية</p>
+      <div class="countdown-track">
+        <div class="countdown-fill" id="countdownFill"></div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <!-- MikroTik: link-redirect -->
+      <a href="$(link-redirect)$" class="btn-connect" id="skipBtn">تخطي الإعلان</a>
+    </div>
+
+    <footer class="portal-footer">
+      <p>شبكة <strong>الأزرق نت</strong></p>
+      <p class="footer-eng">تصميم وبرمجة: <span class="eng-name">المهندس عبدالقدوس</span></p>
+    </footer>
+  </div>
+
+  <script>
+    var total = 10;
+    var remaining = total;
+    var fill = document.getElementById('countdownFill');
+    var cntEl = document.getElementById('adCountdown');
+
+    var timer = setInterval(function () {
+      remaining--;
+      if (cntEl) cntEl.textContent = remaining;
+      var pct = ((total - remaining) / total) * 100;
+      if (fill) fill.style.width = pct + '%';
+      if (remaining <= 0) {
+        clearInterval(timer);
+        window.location.href = '$(link-redirect)$';
+      }
+    }, 1000);
+  </script>
+
+</body>
+</html>
