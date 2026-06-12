@@ -3,72 +3,101 @@
  *  custom.js — محرك بوابة الأزرق نت
  *  MikroTik RouterOS Hotspot
  *
- *  المهام:
- *  1. تشغيل الفيديو مرة واحدة (no loop) + تجميده على آخر إطار
- *  2. انبثاق الفورم عند الثانية 4 بالضبط (timeupdate)
- *  3. جسيمات canvas خفيفة في الخلفية
- *  4. Rate Limiting (حماية Brute Force) على مستوى المتصفح
- *  5. حماية Anti-Frame + منع DevTools
- *  6. إصلاح اتجاه الحقول الرقمية (RTL/LTR)
- *  7. منع Double Submit
+ *  تسلسل الأنيميشن (مطابق للفيديو):
+ *  ──────────────────────────────────────────────
+ *  ث 0 → 4.0 : الفيديو يعمل، الفورم مخفي تماماً
+ *  ث 4.0      : الحقول تبزغ من نقطة الحقيبة
+ *               scale(0.04) → scale(0.35) — 500ms
+ *  ث 4.5      : تواصل الصعود والتكبر
+ *               scale(0.35) → scale(0.65) — 600ms
+ *  ث 5.1      : تصل حجمها النهائي scale(1) — 700ms
+ *  ث 7 → 9   : الرجل يتكئ، الفورم ثابت تماماً
+ *  عند ended  : الفيديو يتجمد على آخر إطار
  * ════════════════════════════════════════════════════════════════
  */
 (function () {
   'use strict';
 
   /* ════════════════════════════════════════════
-     الإعدادات — عدّلها حسب مدة فيديوك
+     الإعدادات — عدّل FORM_START_SEC ليطابق فيديوك
   ════════════════════════════════════════════ */
   var CFG = {
-    /*
-     * الثانية التي يظهر فيها الفورم (بالثواني — ليس ms)
-     * 4.0 = الثانية الرابعة من الفيديو
-     * عدّلها حتى تتطابق مع لحظة فتح الحقيبة/إشارة اليد
-     */
-    FORM_SHOW_AT_SEC  : 4.0,
+    /* الثانية التي تبدأ عندها المرحلة الأولى (بزوغ من الحقيبة) */
+    FORM_START_SEC  : 4.0,
 
-    /*
-     * مهلة احتياطية (ms) إذا فشل الفيديو أو لم يُشغَّل
-     * 6000 = 6 ثوانٍ
-     */
-    FALLBACK_DELAY_MS : 6000,
+    /* مدة كل مرحلة بالميلي ثانية */
+    PHASE1_DURATION : 500,   /* scale 0.04 → 0.35 */
+    PHASE2_DURATION : 600,   /* scale 0.35 → 0.65 */
+    PHASE3_DURATION : 700,   /* scale 0.65 → 1.00 */
+
+    /* مهلة احتياطية كاملة إذا فشل الفيديو */
+    FALLBACK_MS     : 6500,
 
     /* حماية Brute Force */
-    MAX_ATTEMPTS      : 5,
-    ATTEMPT_WINDOW_MS : 60000,   /* دقيقة واحدة */
-    LOCKOUT_MS        : 120000,  /* دقيقتان */
+    MAX_ATTEMPTS    : 5,
+    ATTEMPT_WIN_MS  : 60000,
+    LOCKOUT_MS      : 120000,
   };
 
   /* ════════════════════════════════════════════
-     1. الفيديو + توقيت الانبثاق
+     1. مرجعيات DOM
   ════════════════════════════════════════════ */
-  var video     = document.getElementById('bgVideo');
-  var overlay   = document.getElementById('loginFormOverlay');
-  var formShown = false;
+  var video   = document.getElementById('bgVideo');
+  var popup   = document.getElementById('formPopup');
+  var phase   = 0;  /* 0=مخفي، 1=phase1، 2=phase2، 3=final */
 
-  /** تُظهر عناصر الفورم بأنيميشن pop-up */
-  function showForm() {
-    if (formShown || !overlay) return;
-    formShown = true;
-    overlay.classList.add('is-visible');
+  /* ════════════════════════════════════════════
+     2. دوال تقدم مراحل الأنيميشن
+  ════════════════════════════════════════════ */
+  function runPhase1() {
+    if (phase >= 1 || !popup) return;
+    phase = 1;
+    /* إزالة الكلاسات القديمة وإضافة phase1 */
+    popup.classList.remove('anim-phase2', 'anim-final');
+    popup.classList.add('anim-phase1');
 
-    /* تركيز تلقائي على حقل الكرت */
-    var cardInput = document.getElementById('cardNumber');
-    if (cardInput) {
-      setTimeout(function () { cardInput.focus(); }, 80);
-    }
+    /* بعد PHASE1_DURATION → phase2 */
+    setTimeout(runPhase2, CFG.PHASE1_DURATION);
   }
 
-  /* المؤقت الاحتياطي — يعمل دائماً */
-  var fallbackTimer = setTimeout(showForm, CFG.FALLBACK_DELAY_MS);
+  function runPhase2() {
+    if (phase >= 2 || !popup) return;
+    phase = 2;
+    popup.classList.remove('anim-phase1', 'anim-final');
+    popup.classList.add('anim-phase2');
+
+    /* بعد PHASE2_DURATION → final */
+    setTimeout(runFinal, CFG.PHASE2_DURATION);
+  }
+
+  function runFinal() {
+    if (phase >= 3 || !popup) return;
+    phase = 3;
+    popup.classList.remove('anim-phase1', 'anim-phase2');
+    popup.classList.add('anim-final');
+
+    /* تركيز على حقل الكرت بعد اكتمال الأنيميشن */
+    setTimeout(function () {
+      var inp = document.getElementById('cardNumber');
+      if (inp) inp.focus();
+    }, CFG.PHASE3_DURATION + 50);
+  }
+
+  /* ════════════════════════════════════════════
+     3. الفيديو — مراقبة timeupdate والتجميد
+  ════════════════════════════════════════════ */
+
+  /* المؤقت الاحتياطي — يعمل دائماً على كل الأجهزة */
+  var fallbackTimer = setTimeout(function () {
+    if (phase === 0) runPhase1();
+  }, CFG.FALLBACK_MS);
 
   if (video) {
 
-    /* إخفاء الفيديو حتى يبدأ التشغيل لتجنب الوميض */
+    /* إخفاء الفيديو حتى يكون جاهزاً لتجنب الوميض */
     video.style.opacity = '0';
-    video.style.transition = 'opacity 0.4s ease';
+    video.style.transition = 'opacity 0.35s ease';
 
-    /* عند جاهزية الفيديو للتشغيل */
     video.addEventListener('loadeddata', function () {
       video.style.opacity = '1';
     });
@@ -78,256 +107,212 @@
     });
 
     /*
-     * ── الحدث الرئيسي: timeupdate ──
-     * يُطلَق كل ~250ms أثناء التشغيل
-     * نتحقق من وصول الفيديو للثانية المحددة
+     * timeupdate — يُطلَق كل ~250ms
+     * نراقب الثانية 4.0 لبدء الأنيميشن
      */
     video.addEventListener('timeupdate', function () {
-      if (!formShown && video.currentTime >= CFG.FORM_SHOW_AT_SEC) {
+      if (phase === 0 && video.currentTime >= CFG.FORM_START_SEC) {
         clearTimeout(fallbackTimer);
-        showForm();
+        runPhase1();
       }
     });
 
     /*
-     * ── تجميد الفيديو على آخر إطار ──
-     * عند الوصول لنهاية الفيديو: نوقف + نضع currentTime
-     * على آخر لحظة لمنع الشاشة السوداء
-     * loop = false (لا يوجد loop في HTML)
+     * ended — تجميد الفيديو على آخر إطار
+     * نرجع frame بسيط قبل النهاية لتجنب الشاشة السوداء
      */
     video.addEventListener('ended', function () {
-      /* ارجع خطوة صغيرة قبل النهاية لتجنب الإطار الأسود */
-      video.currentTime = video.duration - 0.05;
+      /* تجميد على آخر إطار */
+      if (video.duration && isFinite(video.duration)) {
+        video.currentTime = video.duration - 0.06;
+      }
       video.pause();
-      showForm(); /* تأكيد الظهور إذا لم يكن قد ظهر */
+      /* إكمال الأنيميشن إذا لم يكتمل */
+      if (phase < 3) runFinal();
     });
 
     /*
-     * ── احتياطي: إذا فشل الفيديو ──
-     * المتصفح يمنع Autoplay أو الملف غير موجود
+     * error — إذا فشل الفيديو في التحميل
      */
     video.addEventListener('error', function () {
       clearTimeout(fallbackTimer);
-      showForm();
+      if (phase === 0) runPhase1();
     });
 
     /*
-     * محاولة تشغيل الفيديو تلقائياً
-     * بعض المتصفحات تمنع حتى muted + autoplay في بعض الحالات
+     * محاولة تشغيل autoplay
      */
     var playPromise = video.play();
     if (playPromise !== undefined) {
       playPromise.catch(function () {
-        /* إذا فشل التشغيل — أظهر الفورم فوراً */
+        /* autoplay ممنوع — أظهر الفورم فوراً */
         clearTimeout(fallbackTimer);
-        showForm();
+        if (phase === 0) runPhase1();
       });
     }
 
   } else {
-    /* لا يوجد عنصر فيديو (مثلاً اختبار محلي) */
+    /* لا يوجد فيديو — اختبار محلي */
     clearTimeout(fallbackTimer);
-    showForm();
+    setTimeout(runPhase1, 400);
   }
 
   /* ════════════════════════════════════════════
-     2. Rate Limiting — Brute Force Protection
-     (مستوى المتصفح — لا يُغني عن حماية السيرفر)
+     4. Rate Limiting (Brute Force Protection)
   ════════════════════════════════════════════ */
-  var LS_ATTEMPTS = 'az_login_attempts';
-  var LS_LOCKOUT  = 'az_login_lockout';
+  var SS_ATTEMPTS = 'az_login_attempts';
+  var SS_LOCKOUT  = 'az_login_lockout';
 
   function getAttempts() {
-    try { return JSON.parse(sessionStorage.getItem(LS_ATTEMPTS) || '[]'); }
-    catch (e) { return []; }
+    try { return JSON.parse(sessionStorage.getItem(SS_ATTEMPTS)||'[]'); } catch(e){ return []; }
   }
 
   function isLockedOut() {
     try {
-      var t = parseInt(sessionStorage.getItem(LS_LOCKOUT) || '0', 10);
+      var t = parseInt(sessionStorage.getItem(SS_LOCKOUT)||'0',10);
       if (!t) return false;
       if (Date.now() < t) return true;
-      sessionStorage.removeItem(LS_LOCKOUT);
-      sessionStorage.removeItem(LS_ATTEMPTS);
+      sessionStorage.removeItem(SS_LOCKOUT);
+      sessionStorage.removeItem(SS_ATTEMPTS);
       return false;
-    } catch (e) { return false; }
+    } catch(e){ return false; }
   }
 
   function recordAttempt() {
     var now  = Date.now();
-    var list = getAttempts().filter(function (t) {
-      return (now - t) < CFG.ATTEMPT_WINDOW_MS;
-    });
+    var list = getAttempts().filter(function(t){ return (now-t) < CFG.ATTEMPT_WIN_MS; });
     list.push(now);
-    try { sessionStorage.setItem(LS_ATTEMPTS, JSON.stringify(list)); } catch(e){}
+    try { sessionStorage.setItem(SS_ATTEMPTS, JSON.stringify(list)); } catch(e){}
     if (list.length >= CFG.MAX_ATTEMPTS) {
-      try { sessionStorage.setItem(LS_LOCKOUT, String(now + CFG.LOCKOUT_MS)); } catch(e){}
+      try { sessionStorage.setItem(SS_LOCKOUT, String(now + CFG.LOCKOUT_MS)); } catch(e){}
       return false;
     }
     return true;
   }
 
   function showRateError(msg) {
-    var banner  = document.getElementById('errorBanner');
-    var errText = document.getElementById('errorText');
-    if (banner) {
-      banner.style.display = 'flex';
-      if (errText) errText.textContent = msg;
-    }
+    var b = document.getElementById('errorBanner');
+    var t = document.getElementById('errorText');
+    if (b) { b.style.display = 'flex'; if (t) t.textContent = msg; }
     var btn = document.getElementById('connectBtn');
     if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
   }
 
-  /** يُستدعى من handleLogin في login.html */
   window.rateLimitCheck = function () {
     if (isLockedOut()) {
-      var remaining = Math.ceil(CFG.LOCKOUT_MS / 60000);
-      showRateError('تم تجاوز الحد المسموح. حاول مجدداً بعد ' + remaining + ' دقائق.');
+      showRateError('تم تجاوز الحد المسموح. انتظر ' + Math.ceil(CFG.LOCKOUT_MS/60000) + ' دقائق.');
       return false;
     }
     return recordAttempt();
   };
 
   /* ════════════════════════════════════════════
-     3. حقن CSRF Token خفي في النموذج
+     5. CSRF Token خفي
   ════════════════════════════════════════════ */
   (function injectCSRF() {
     var form = document.getElementById('loginForm');
     if (!form) return;
-    var token = Math.random().toString(36).slice(2) + Date.now().toString(36);
     var inp = document.createElement('input');
     inp.type = 'hidden';
     inp.name = '_t';
-    inp.value = token;
+    inp.value = Math.random().toString(36).slice(2) + Date.now().toString(36);
     form.appendChild(inp);
   })();
 
   /* ════════════════════════════════════════════
-     4. Anti-Frame (Clickjacking Layer 2)
+     6. Anti-Frame (Clickjacking Layer 2)
   ════════════════════════════════════════════ */
   if (window.top !== window.self) {
-    try { window.top.location.replace(window.self.location.href); } catch(e){}
+    try { window.top.location.replace(window.self.location.href); } catch(e) {}
   }
 
   /* ════════════════════════════════════════════
-     5. منع DevTools (طبقة رادعة)
+     7. منع DevTools
   ════════════════════════════════════════════ */
-  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'F12') { e.preventDefault(); return false; }
-    if (e.ctrlKey && e.shiftKey && /^[IJC]$/i.test(e.key)) {
-      e.preventDefault(); return false;
-    }
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key==='F12') { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.shiftKey && /^[IJC]$/i.test(e.key)) { e.preventDefault(); return false; }
     if (e.ctrlKey && /^U$/i.test(e.key)) { e.preventDefault(); return false; }
   });
 
   /* ════════════════════════════════════════════
-     6. منع Double Submit
+     8. منع Double Submit
   ════════════════════════════════════════════ */
-  var formSubmitted = false;
-  document.addEventListener('submit', function (e) {
-    if (formSubmitted) { e.preventDefault(); return; }
-    formSubmitted = true;
-    setTimeout(function () { formSubmitted = false; }, 8000);
+  var submitted = false;
+  document.addEventListener('submit', function(e){
+    if (submitted) { e.preventDefault(); return; }
+    submitted = true;
+    setTimeout(function(){ submitted = false; }, 8000);
   });
 
   /* ════════════════════════════════════════════
-     7. Canvas — جسيمات الخلفية الخفيفة
-     (22 جسيماً فقط للأداء المثالي على الهواتف)
+     9. Canvas — جسيمات خلفية خفيفة
+     (في صفحة login فقط)
   ════════════════════════════════════════════ */
   (function initParticles() {
-    /* نتأكد أننا في صفحة login فقط */
     if (!document.body.classList.contains('page-login')) return;
-
     var canvas = document.getElementById('particleCanvas');
     if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var pts = [], N = 20, active = true;
 
-    var ctx        = canvas.getContext('2d');
-    var particles  = [];
-    var COUNT      = 22;
-    var animActive = true;
-
-    function resize() {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+    function resize() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
     resize();
-    window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('resize', resize, {passive:true});
 
-    /* إنشاء الجسيمات */
-    for (var i = 0; i < COUNT; i++) {
-      particles.push({
-        x     : Math.random() * canvas.width,
-        y     : Math.random() * canvas.height,
-        r     : Math.random() * 1.8 + 0.4,
-        vx    : (Math.random() - 0.5) * 0.35,
-        vy    : -(Math.random() * 0.5 + 0.15),
-        alpha : Math.random() * 0.45 + 0.15,
-      });
-    }
+    for (var i=0;i<N;i++) pts.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      r: Math.random()*1.7+0.4,
+      vx: (Math.random()-.5)*0.32,
+      vy: -(Math.random()*0.45+0.12),
+      a: Math.random()*0.42+0.14
+    });
 
-    function drawFrame() {
-      if (!animActive) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (var a = 0; a < particles.length; a++) {
-        var p = particles[a];
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
-        if (p.x < -4) p.x = canvas.width  + 4;
-        if (p.x > canvas.width + 4)  p.x = -4;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(59,155,255,' + p.alpha + ')';
-        ctx.fill();
+    function draw() {
+      if (!active) return;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for (var a=0;a<pts.length;a++) {
+        var p=pts[a];
+        p.x+=p.vx; p.y+=p.vy;
+        if (p.y<-4){ p.y=canvas.height+4; p.x=Math.random()*canvas.width; }
+        if (p.x<-4) p.x=canvas.width+4;
+        if (p.x>canvas.width+4) p.x=-4;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle='rgba(59,155,255,'+p.a+')'; ctx.fill();
       }
-
-      /* خطوط بين الجسيمات القريبة */
-      for (var a2 = 0; a2 < particles.length - 1; a2++) {
-        for (var b = a2 + 1; b < particles.length; b++) {
-          var dx   = particles[a2].x - particles[b].x;
-          var dy   = particles[a2].y - particles[b].y;
-          var dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 110) {
-            var lineAlpha = (1 - dist / 110) * 0.14;
+      for (var a2=0;a2<pts.length-1;a2++) {
+        for (var b=a2+1;b<pts.length;b++) {
+          var dx=pts[a2].x-pts[b].x, dy=pts[a2].y-pts[b].y;
+          var dist=Math.sqrt(dx*dx+dy*dy);
+          if (dist<110) {
             ctx.beginPath();
-            ctx.moveTo(particles[a2].x, particles[a2].y);
-            ctx.lineTo(particles[b].x,  particles[b].y);
-            ctx.strokeStyle = 'rgba(59,155,255,' + lineAlpha + ')';
-            ctx.lineWidth   = 0.7;
-            ctx.stroke();
+            ctx.moveTo(pts[a2].x,pts[a2].y); ctx.lineTo(pts[b].x,pts[b].y);
+            ctx.strokeStyle='rgba(59,155,255,'+((1-dist/110)*0.13)+')';
+            ctx.lineWidth=0.7; ctx.stroke();
           }
         }
       }
-
-      requestAnimationFrame(drawFrame);
+      requestAnimationFrame(draw);
     }
 
-    /* لا أنيميشن إذا كان المستخدم يفضل تقليلها */
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      requestAnimationFrame(drawFrame);
+      requestAnimationFrame(draw);
     }
 
-    /* إيقاف عند الخلفية (توفير البطارية) */
-    document.addEventListener('visibilitychange', function () {
-      animActive = !document.hidden;
-      if (animActive) requestAnimationFrame(drawFrame);
+    document.addEventListener('visibilitychange', function(){
+      active = !document.hidden;
+      if (active) requestAnimationFrame(draw);
     });
   })();
 
   /* ════════════════════════════════════════════
-     8. Prefetch alogin.html تحسيناً للأداء
+     10. Prefetch alogin.html
   ════════════════════════════════════════════ */
-  (function prefetch(href) {
-    var link = document.createElement('link');
-    link.rel  = 'prefetch';
-    link.href = href;
-    document.head.appendChild(link);
-  })('alogin.html');
+  (function() {
+    var l=document.createElement('link'); l.rel='prefetch'; l.href='alogin.html';
+    document.head.appendChild(l);
+  })();
 
 })();
-/* ════ نهاية custom.js ════ */

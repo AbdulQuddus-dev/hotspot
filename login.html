@@ -4,15 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <!-- ============================================================
-       شبكة الأزرق نت — صفحة تسجيل الدخول الرئيسية
-       MikroTik RouterOS Captive Portal — login.html
-       الهيكل: Header → مسرح الفيديو → أزرار الخدمات → Footer
-  ============================================================ -->
   <title>الأزرق نت — سجّل دخولك</title>
   <link rel="stylesheet" href="style.css" />
-
-  <!-- حماية Clickjacking الطبقة الأولى -->
   <style>html { display: none; }</style>
   <script>
     if (self === top) { document.documentElement.style.display = 'block'; }
@@ -21,20 +14,13 @@
 </head>
 <body class="page-login">
 
-<!-- ══════════════════════════════════════════════════════════════
-     جسيمات الخلفية (canvas) — تُحرَّك بـ custom.js
-══════════════════════════════════════════════════════════════ -->
 <canvas id="particleCanvas" aria-hidden="true"></canvas>
 
-<!-- ══════════════════════════════════════════════════════════════
-     ① HEADER — العنوان + شريط الآية القرآنية
-══════════════════════════════════════════════════════════════ -->
+<!-- ① HEADER -->
 <header class="site-header">
-
-  <!-- عنوان الشبكة المُشِع -->
   <div class="header-brand">
     <span class="header-wifi-icon" aria-hidden="true">
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 64 64" fill="none">
         <path d="M8 26 Q32 6 56 26" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>
         <path d="M16 35 Q32 18 48 35" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>
         <path d="M24 44 Q32 34 40 44" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>
@@ -46,32 +32,39 @@
       <p class="header-subtitle">اتصال سريع · آمن · موثوق</p>
     </div>
   </div>
-
-  <!-- شريط الآية القرآنية المتحرك -->
   <div class="quran-ticker-wrap" role="marquee" aria-label="آية قرآنية">
-    <div class="quran-ticker" id="quranTicker">
-      <span class="quran-text">
-        ﴿ وَمَن يَعْصِ اللَّهَ وَرَسُولَهُ فَإِنَّ لَهُ نَارَ جَهَنَّمَ خَالِدِينَ فِيهَا أَبَدًا ﴾ — سورة الجن: ٢٣ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ﴿ إِنَّ الَّذِينَ يَأْكُلُونَ أَمْوَالَ الْيَتَامَىٰ ظُلْمًا إِنَّمَا يَأْكُلُونَ فِي بُطُونِهِمْ نَارًا وَسَيَصْلَوْنَ سَعِيرًا ﴾ — سورة النساء: ١٠ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ﴿ وَلَا تَأْكُلُوا أَمْوَالَكُم بَيْنَكُم بِالْبَاطِلِ ﴾ — سورة البقرة: ١٨٨ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      </span>
-      <!-- نسخة ثانية لاستمرارية الشريط -->
-      <span class="quran-text" aria-hidden="true">
-        ﴿ وَمَن يَعْصِ اللَّهَ وَرَسُولَهُ فَإِنَّ لَهُ نَارَ جَهَنَّمَ خَالِدِينَ فِيهَا أَبَدًا ﴾ — سورة الجن: ٢٣ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ﴿ إِنَّ الَّذِينَ يَأْكُلُونَ أَمْوَالَ الْيَتَامَىٰ ظُلْمًا إِنَّمَا يَأْكُلُونَ فِي بُطُونِهِمْ نَارًا وَسَيَصْلَوْنَ سَعِيرًا ﴾ — سورة النساء: ١٠ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ﴿ وَلَا تَأْكُلُوا أَمْوَالَكُم بَيْنَكُم بِالْبَاطِلِ ﴾ — سورة البقرة: ١٨٨ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      </span>
+    <div class="quran-ticker">
+      <span class="quran-text">﴿ وَمَن يَعْصِ اللَّهَ وَرَسُولَهُ فَإِنَّ لَهُ نَارَ جَهَنَّمَ خَالِدِينَ فِيهَا أَبَدًا ﴾ — سورة الجن: ٢٣ &nbsp;&nbsp;&nbsp;&nbsp; ﴿ إِنَّ الَّذِينَ يَأْكُلُونَ أَمْوَالَ الْيَتَامَىٰ ظُلْمًا إِنَّمَا يَأْكُلُونَ فِي بُطُونِهِمْ نَارًا وَسَيَصْلَوْنَ سَعِيرًا ﴾ — سورة النساء: ١٠ &nbsp;&nbsp;&nbsp;&nbsp; ﴿ وَلَا تَأْكُلُوا أَمْوَالَكُم بَيْنَكُم بِالْبَاطِلِ ﴾ — سورة البقرة: ١٨٨ &nbsp;&nbsp;&nbsp;&nbsp;</span>
+      <span class="quran-text" aria-hidden="true">﴿ وَمَن يَعْصِ اللَّهَ وَرَسُولَهُ فَإِنَّ لَهُ نَارَ جَهَنَّمَ خَالِدِينَ فِيهَا أَبَدًا ﴾ — سورة الجن: ٢٣ &nbsp;&nbsp;&nbsp;&nbsp; ﴿ إِنَّ الَّذِينَ يَأْكُلُونَ أَمْوَالَ الْيَتَامَىٰ ظُلْمًا إِنَّمَا يَأْكُلُونَ فِي بُطُونِهِمْ نَارًا وَسَيَصْلَوْنَ سَعِيرًا ﴾ — سورة النساء: ١٠ &nbsp;&nbsp;&nbsp;&nbsp; ﴿ وَلَا تَأْكُلُوا أَمْوَالَكُم بَيْنَكُم بِالْبَاطِلِ ﴾ — سورة البقرة: ١٨٨ &nbsp;&nbsp;&nbsp;&nbsp;</span>
     </div>
   </div>
-
 </header>
-<!-- ── نهاية HEADER ── -->
 
+<!-- ════════════════════════════════════════════════════════════════
+     ② مسرح الفيديو
+     ════════════════════════════════════════════════
+     تحليل الفيديو والموضع الدقيق للحقول:
+     ─────────────────────────────────────────────
+     الفيديو نسبة 16:9 — خلفية برتقالية
+     الرجل: يقف في الثلث الأيسر (25% من اليسار)
+     الحقيبة: وسط-يمين (55% من اليسار، 78% من الأعلى)
 
-<!-- ══════════════════════════════════════════════════════════════
-     ② مسرح الفيديو — Video Stage
-     الفيديو يعمل مرة واحدة ثم يتجمد على الإطار الأخير
-     العناصر المنبثقة تظهر عند الثانية 4 بالضبط
-══════════════════════════════════════════════════════════════ -->
+     مراحل الأنيميشن:
+     ث0→4   : فقط الرجل والحقيبة — الفورم مخفي تماماً
+     ث4→4.5 : الحقول تبزغ من موضع الحقيبة
+              scale(0.1) opacity:0 → نقطة الأصل عند الحقيبة
+     ث4.5→5.5: ترتفع وتكبر تدريجياً للموضع الوسطي
+              scale(0.6) مع translateY لأعلى
+     ث5.5→7 : تصل حجمها النهائي وموضعها
+              يشغل الفورم نصف الفيديو من اليمين
+              يبدأ عند 30% من اليسار وينتهي عند 85%
+              الحافة السفلية عند 88% من أعلى الفيديو
+     ث7→9   : الرجل يتكئ بذراعه اليسرى على يسار الفورم
+              الفورم ثابت تماماً
+     ════════════════════════════════════════════════ -->
 <section class="video-stage" id="videoStage" aria-label="مسرح الأنيميشن">
 
-  <!-- الفيديو الأساسي — NO loop -->
+  <!-- الفيديو — بدون loop، يتجمد على آخر إطار -->
   <video
     id="bgVideo"
     class="stage-video"
@@ -83,213 +76,157 @@
     poster="poster.jpg"
   ></video>
 
-  <!-- تدرج لتحسين قراءة عناصر الفورم فوق الفيديو -->
-  <div class="stage-gradient" aria-hidden="true"></div>
+  <!-- ════════════════════════════════════════════
+       حاوية الفورم المنبثق
+       position:absolute داخل video-stage
+       الموضع النهائي: يمين-وسط الفيديو
+       يبدأ من 30% من اليسار → 85% من اليسار
+       الحافة السفلية: 88% من أعلى الفيديو
+  ════════════════════════════════════════════ -->
+  <div class="form-anchor" id="formAnchor" aria-live="polite">
 
-  <!-- ════════════════════════════════════════════════
-       عناصر الفورم المنبثقة — Form Overlay
-       مخفية (opacity:0) حتى الثانية 4 من الفيديو
-  ════════════════════════════════════════════════ -->
-  <div class="form-overlay" id="loginFormOverlay" aria-live="polite">
+    <!-- حاوية الأنيميشن الداخلية: تنبثق من نقطة الحقيبة -->
+    <div class="form-popup" id="formPopup">
 
-    <!-- رسالة الخطأ من MikroTik -->
-    <!-- $(if error)$ -->
-    <div class="error-banner" id="errorBanner" role="alert" style="display:none">
-      <svg viewBox="0 0 20 20" aria-hidden="true">
-        <path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z" fill="currentColor"/>
-      </svg>
-      <span id="errorText"><!-- $(error)$ --></span>
-    </div>
-    <!-- $(endif)$ -->
-
-    <!-- النموذج الرئيسي -->
-    <!--
-      action  = $(link-login-only)$  ← يُملأ بـ MikroTik
-      method  = POST
-    -->
-    <form
-      id="loginForm"
-      method="POST"
-      action="$(link-login-only)$"
-      autocomplete="off"
-      novalidate
-      onsubmit="return handleLogin(event)"
-    >
-      <!-- الحقول المخفية المطلوبة من MikroTik -->
-      <input type="hidden" name="dst"      value="$(link-orig)$" />
-      <input type="hidden" name="popup"    value="true" />
-      <input type="hidden" name="username" id="hiddenUsername" />
-      <input type="hidden" name="password" id="hiddenPassword" />
-
-      <!-- ── حقل رقم الكرت ── -->
-      <div class="field-group" id="cardFieldGroup">
-        <div class="input-wrapper">
-          <span class="input-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M2 10h20" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </span>
-          <input
-            type="text"
-            id="cardNumber"
-            name="card"
-            placeholder="أدخل رقم الكرت"
-            maxlength="64"
-            required
-            autocomplete="off"
-            inputmode="numeric"
-            aria-required="true"
-            aria-describedby="cardError"
-          />
-        </div>
-        <span class="field-error" id="cardError" role="alert"></span>
+      <!-- رسالة الخطأ من MikroTik -->
+      <!-- $(if error)$ -->
+      <div class="error-banner" id="errorBanner" role="alert" style="display:none">
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V5h2v4z" fill="currentColor"/>
+        </svg>
+        <span id="errorText"><!-- $(error)$ --></span>
       </div>
+      <!-- $(endif)$ -->
 
-      <!-- ── خيار "دخول بكرت سابق" ── -->
-      <div class="prev-cards-toggle" id="prevCardsToggle">
-        <button
-          type="button"
-          class="prev-cards-btn"
-          id="prevCardsBtn"
-          onclick="togglePrevCards()"
-          aria-expanded="false"
-          aria-controls="prevCardsDropdown"
-        >
+      <!--
+        action = $(link-login-only)$
+        method = POST
+      -->
+      <form
+        id="loginForm"
+        method="POST"
+        action="$(link-login-only)$"
+        autocomplete="off"
+        novalidate
+        onsubmit="return handleLogin(event)"
+      >
+        <!-- حقول MikroTik المخفية -->
+        <input type="hidden" name="dst"      value="$(link-orig)$" />
+        <input type="hidden" name="popup"    value="true" />
+        <input type="hidden" name="username" id="hiddenUsername" />
+        <input type="hidden" name="password" id="hiddenPassword" />
+
+        <!-- حقل رقم الكرت -->
+        <div class="fp-field">
+          <div class="fp-input-wrap">
+            <span class="fp-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                <path d="M2 10h20" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="cardNumber"
+              name="card"
+              placeholder="أدخل رقم الكرت"
+              maxlength="64"
+              required
+              autocomplete="off"
+              inputmode="numeric"
+              aria-required="true"
+              aria-describedby="cardError"
+            />
+          </div>
+          <span class="fp-error" id="cardError" role="alert"></span>
+        </div>
+
+        <!-- خيار كرت سابق -->
+        <div class="fp-prev-wrap" id="prevCardsToggle">
+          <button
+            type="button"
+            class="fp-prev-btn"
+            id="prevCardsBtn"
+            onclick="togglePrevCards()"
+            aria-expanded="false"
+            aria-controls="prevCardsDropdown"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span>دخول بكرت سابق</span>
+            <svg class="fp-chevron" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </svg>
+          </button>
+          <div class="fp-prev-dropdown" id="prevCardsDropdown" hidden role="listbox">
+            <div class="fp-prev-head">
+              <span>الكروت المحفوظة</span>
+              <button type="button" onclick="refreshPrevCards()" class="fp-prev-refresh" aria-label="تحديث">
+                <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M20.5 15A9 9 0 1123 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+              </button>
+            </div>
+            <ul id="prevCardsList"></ul>
+            <p id="prevCardsEmpty" style="display:none" class="fp-prev-empty">لا توجد كروت محفوظة.</p>
+          </div>
+        </div>
+
+        <!-- زر تسجيل الدخول -->
+        <button type="submit" class="fp-submit" id="connectBtn" aria-live="polite">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 5v4l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
           </svg>
-          <span>دخول بكرت سابق</span>
-          <svg class="chevron-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-          </svg>
+          <span class="btn-text">تسجيل الدخول</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
         </button>
 
-        <!-- القائمة المنسدلة للكروت السابقة -->
-        <div class="prev-cards-dropdown" id="prevCardsDropdown" role="listbox" aria-label="الكروت السابقة" hidden>
-          <div class="prev-cards-header">
-            <span class="prev-cards-title">الكروت المحفوظة</span>
-            <button
-              type="button"
-              class="prev-cards-refresh"
-              onclick="refreshPrevCards()"
-              aria-label="تحديث القائمة"
-              title="تحديث"
-            >
-              <svg viewBox="0 0 24 24">
-                <polyline points="23 4 23 10 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-                <path d="M20.5 15A9 9 0 1123 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-              </svg>
-            </button>
-          </div>
-          <ul class="prev-cards-list" id="prevCardsList">
-            <!-- تُملأ ديناميكياً بـ JS من LocalStorage -->
-          </ul>
-          <p class="prev-cards-empty" id="prevCardsEmpty" style="display:none">
-            لا توجد كروت محفوظة بعد.
-          </p>
-        </div>
-      </div>
-
-      <!-- ── زر تسجيل الدخول ── -->
-      <button type="submit" class="btn-login" id="connectBtn" aria-live="polite">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-          <polyline points="10 17 15 12 10 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-          <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
-        <span class="btn-text">تسجيل الدخول</span>
-        <span class="btn-spinner" aria-hidden="true"></span>
-      </button>
-
-    </form>
-  </div>
-  <!-- ── نهاية form-overlay ── -->
+      </form>
+    </div><!-- /form-popup -->
+  </div><!-- /form-anchor -->
 
 </section>
-<!-- ── نهاية video-stage ── -->
+<!-- نهاية video-stage -->
 
 
-<!-- ══════════════════════════════════════════════════════════════
-     ③ أزرار الخدمات — Service Cards
-     تظهر تحت مسرح الفيديو مباشرة
-══════════════════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════
+     ③ أزرار الخدمات — خارج مسرح الفيديو تماماً
+     margin-top: 4cm (≈ 151px) فاصل ثابت
+════════════════════════════════════════════ -->
 <section class="services-section" aria-label="خدمات الشبكة">
   <div class="services-grid">
 
-    <!-- بطاقة الأسعار -->
-    <button
-      class="svc-card"
-      type="button"
-      onclick="openModal('modalPrices')"
-      aria-haspopup="dialog"
-    >
+    <button class="svc-card" type="button" onclick="openModal('modalPrices')" aria-haspopup="dialog">
       <span class="svc-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.8" fill="none"/>
-          <path d="M12 6v2M12 16v2M8.5 9.5A2 2 0 0110 8h4a2 2 0 010 4H10a2 2 0 000 4h4a2 2 0 001.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M12 6v2M12 16v2M8.5 9.5A2 2 0 0110 8h4a2 2 0 010 4H10a2 2 0 000 4h4a2 2 0 001.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
       </span>
       <span class="svc-label">الأسعار</span>
     </button>
 
-    <!-- بطاقة الاستهلاك -->
-    <a
-      class="svc-card"
-      href="$(link-status)$"
-      aria-label="متابعة الاستهلاك"
-    >
+    <a class="svc-card" href="$(link-status)$" aria-label="متابعة الاستهلاك">
       <span class="svc-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       </span>
       <span class="svc-label">استهلاكي</span>
     </a>
 
-    <!-- بطاقة التعليمات -->
-    <button
-      class="svc-card"
-      type="button"
-      onclick="openModal('modalHelp')"
-      aria-haspopup="dialog"
-    >
+    <button class="svc-card" type="button" onclick="openModal('modalHelp')" aria-haspopup="dialog">
       <span class="svc-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8" fill="none"/>
-          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-          <circle cx="12" cy="17" r="0.8" fill="currentColor"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="12" cy="17" r="0.8" fill="currentColor"/></svg>
       </span>
       <span class="svc-label">تعليمات</span>
     </button>
 
-    <!-- بطاقة الاتصال -->
-    <a
-      class="svc-card"
-      href="tel:+9647XXXXXXXXX"
-      id="phoneLink"
-      aria-label="اتصل بنا"
-    >
+    <a class="svc-card" href="tel:+9647XXXXXXXXX" id="phoneLink" aria-label="اتصل بنا">
       <span class="svc-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.08 4.18 2 2 0 015 2h3a2 2 0 012 1.72c.12 1 .37 1.97.74 2.9a2 2 0 01-.45 2.11L9.09 9.91A16 16 0 0014.09 14.91l1.18-1.2a2 2 0 012.11-.45c.93.37 1.9.62 2.9.74A2 2 0 0122 16.92z" stroke="currentColor" stroke-width="1.8" fill="none"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.08 4.18 2 2 0 015 2h3a2 2 0 012 1.72c.12 1 .37 1.97.74 2.9a2 2 0 01-.45 2.11L9.09 9.91A16 16 0 0014.09 14.91l1.18-1.2a2 2 0 012.11-.45c.93.37 1.9.62 2.9.74A2 2 0 0122 16.92z" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
       </span>
       <span class="svc-label">اتصـال</span>
     </a>
 
-    <!-- بطاقة واتساب -->
-    <a
-      class="svc-card svc-card--whatsapp"
-      href="https://wa.me/9647XXXXXXXXX"
-      id="waLink"
-      target="_blank"
-      rel="noopener"
-      aria-label="تواصل عبر واتساب"
-    >
+    <a class="svc-card svc-card--whatsapp" href="https://wa.me/9647XXXXXXXXX" id="waLink" target="_blank" rel="noopener" aria-label="واتساب">
       <span class="svc-icon" aria-hidden="true">
-        <!-- أيقونة واتساب SVG محلية -->
         <svg viewBox="0 0 24 24" fill="none">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="currentColor"/>
           <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.402A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.95 7.95 0 01-4.076-1.12l-.292-.174-3.005.848.852-2.925-.19-.3A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" fill="currentColor"/>
@@ -300,43 +237,21 @@
 
   </div>
 </section>
-<!-- ── نهاية services-section ── -->
 
-
-<!-- ══════════════════════════════════════════════════════════════
-     ④ FOOTER — التذييل
-══════════════════════════════════════════════════════════════ -->
+<!-- ④ FOOTER -->
 <footer class="site-footer">
-  <p class="footer-copy">
-    جميع الحقوق محفوظة &copy; <strong>شبكة الأزرق نت</strong>
-  </p>
-  <p class="footer-eng">
-    تصميم وبرمجة: <span class="eng-name">المهندس عبدالقدوس</span>
-  </p>
-  <!-- رقم التواصل على الواتساب — عدّله حسب رقمك الفعلي -->
-  <a
-    class="footer-wa"
-    href="https://wa.me/9647XXXXXXXXX"
-    id="footerWaLink"
-    target="_blank"
-    rel="noopener"
-    aria-label="تواصل عبر واتساب"
-  >
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="currentColor"/>
-      <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.402A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.95 7.95 0 01-4.076-1.12l-.292-.174-3.005.848.852-2.925-.19-.3A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" fill="currentColor"/>
-    </svg>
+  <p class="footer-copy">جميع الحقوق محفوظة &copy; <strong>شبكة الأزرق نت</strong></p>
+  <p class="footer-eng">تصميم وبرمجة: <span class="eng-name">المهندس عبدالقدوس</span></p>
+  <a class="footer-wa" href="https://wa.me/9647XXXXXXXXX" id="footerWaLink" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="currentColor"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.402A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.95 7.95 0 01-4.076-1.12l-.292-.174-3.005.848.852-2.925-.19-.3A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" fill="currentColor"/></svg>
     <span>+964 7XX XXX XXXX</span>
   </a>
 </footer>
-<!-- ── نهاية FOOTER ── -->
 
 
-<!-- ══════════════════════════════════════════════════════════════
-     ⑤ النوافذ المنبثقة — Modals
-══════════════════════════════════════════════════════════════ -->
-
-<!-- Modal: الأسعار -->
+<!-- ════════════════════════════════════════════
+     النوافذ المنبثقة
+════════════════════════════════════════════ -->
 <div class="modal-backdrop" id="modalPrices" role="dialog" aria-modal="true" aria-labelledby="modalPricesTitle" hidden>
   <div class="modal-box">
     <div class="modal-header">
@@ -350,42 +265,15 @@
     </div>
     <div class="modal-body">
       <div class="price-grid">
-        <div class="price-card">
-          <div class="price-badge">يومية</div>
-          <div class="price-duration">24 ساعة</div>
-          <div class="price-amount">اسأل المزود</div>
-          <ul class="price-features">
-            <li>سرعة عالية</li>
-            <li>جهاز واحد</li>
-          </ul>
-        </div>
-        <div class="price-card price-card--featured">
-          <div class="price-badge price-badge--gold">الأكثر طلباً</div>
-          <div class="price-duration">أسبوعية</div>
-          <div class="price-amount">اسأل المزود</div>
-          <ul class="price-features">
-            <li>سرعة فائقة</li>
-            <li>أولوية الشبكة</li>
-          </ul>
-        </div>
-        <div class="price-card">
-          <div class="price-badge">شهرية</div>
-          <div class="price-duration">30 يوماً</div>
-          <div class="price-amount">اسأل المزود</div>
-          <ul class="price-features">
-            <li>أفضل قيمة</li>
-            <li>دعم مستمر</li>
-          </ul>
-        </div>
+        <div class="price-card"><div class="price-badge">يومية</div><div class="price-duration">24 ساعة</div><div class="price-amount">اسأل المزود</div><ul class="price-features"><li>سرعة عالية</li><li>جهاز واحد</li></ul></div>
+        <div class="price-card price-card--featured"><div class="price-badge price-badge--gold">الأكثر طلباً</div><div class="price-duration">أسبوعية</div><div class="price-amount">اسأل المزود</div><ul class="price-features"><li>سرعة فائقة</li><li>أولوية الشبكة</li></ul></div>
+        <div class="price-card"><div class="price-badge">شهرية</div><div class="price-duration">30 يوماً</div><div class="price-amount">اسأل المزود</div><ul class="price-features"><li>أفضل قيمة</li><li>دعم مستمر</li></ul></div>
       </div>
-      <p class="modal-note">
-        للاستفسار والاشتراك: تواصل مع مزود الخدمة مباشرة.
-      </p>
+      <p class="modal-note">للاستفسار والاشتراك: تواصل مع مزود الخدمة مباشرة.</p>
     </div>
   </div>
 </div>
 
-<!-- Modal: التعليمات -->
 <div class="modal-backdrop" id="modalHelp" role="dialog" aria-modal="true" aria-labelledby="modalHelpTitle" hidden>
   <div class="modal-box">
     <div class="modal-header">
@@ -399,34 +287,10 @@
     </div>
     <div class="modal-body">
       <ol class="help-steps">
-        <li>
-          <span class="step-num">١</span>
-          <div>
-            <strong>احصل على كرت الإنترنت</strong>
-            <p>اشتر كرت الإنترنت من المزود أو الموزع المعتمد.</p>
-          </div>
-        </li>
-        <li>
-          <span class="step-num">٢</span>
-          <div>
-            <strong>اتصل بشبكة الواي فاي</strong>
-            <p>في إعدادات هاتفك، اختر شبكة <strong>الأزرق نت</strong> واتصل بها.</p>
-          </div>
-        </li>
-        <li>
-          <span class="step-num">٣</span>
-          <div>
-            <strong>أدخل رقم الكرت</strong>
-            <p>ستفتح هذه الصفحة تلقائياً. أدخل الرقم الموجود على ظهر الكرت.</p>
-          </div>
-        </li>
-        <li>
-          <span class="step-num">٤</span>
-          <div>
-            <strong>استمتع بالإنترنت</strong>
-            <p>بعد الدخول الناجح ستُوجَّه للإنترنت مباشرةً.</p>
-          </div>
-        </li>
+        <li><span class="step-num">١</span><div><strong>احصل على كرت الإنترنت</strong><p>اشتر كرت الإنترنت من المزود أو الموزع المعتمد.</p></div></li>
+        <li><span class="step-num">٢</span><div><strong>اتصل بشبكة الواي فاي</strong><p>في إعدادات هاتفك، اختر شبكة <strong>الأزرق نت</strong> واتصل بها.</p></div></li>
+        <li><span class="step-num">٣</span><div><strong>أدخل رقم الكرت</strong><p>ستفتح هذه الصفحة تلقائياً. أدخل الرقم الموجود على ظهر الكرت.</p></div></li>
+        <li><span class="step-num">٤</span><div><strong>استمتع بالإنترنت</strong><p>بعد الدخول الناجح ستُوجَّه للإنترنت مباشرةً.</p></div></li>
       </ol>
       <div class="help-tip">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 15v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
@@ -437,281 +301,98 @@
 </div>
 
 
-<!-- ══════════════════════════════════════════════════════════════
-     السكريبتات
-══════════════════════════════════════════════════════════════ -->
 <script src="md5.js"></script>
 <script src="custom.js"></script>
 
 <script>
-/* ════════════════════════════════════════════════════════════
-   منطق تسجيل الدخول + الكروت السابقة + النوافذ المنبثقة
-════════════════════════════════════════════════════════════ */
 'use strict';
+var LS_KEY   = 'az_saved_cards';
+var MAX_SAVED = 8;
 
-/* ── ثابت مفتاح LocalStorage ── */
-var LS_KEY = 'az_saved_cards';
-var MAX_SAVED = 8; /* أقصى عدد كروت محفوظة */
-
-/* ════════════════════
-   تعقيم المدخلات
-════════════════════ */
-function sanitize(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#x27;')
-    .trim();
+function sanitize(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;').trim();
 }
 
-/* ════════════════════
-   التحقق من صحة الكرت
-════════════════════ */
 function validateCard(card) {
   var err = document.getElementById('cardError');
   err.textContent = '';
-  if (!card || card.length < 3) {
-    err.textContent = 'يرجى إدخال رقم الكرت.';
-    return false;
-  }
-  if (card.length > 64) {
-    err.textContent = 'الرقم طويل جداً (الحد 64 حرفاً).';
-    return false;
-  }
-  if (/[<>"'&]/.test(card)) {
-    err.textContent = 'يحتوي على رموز غير مسموح بها.';
-    return false;
-  }
+  if (!card || card.length < 3) { err.textContent = 'يرجى إدخال رقم الكرت.'; return false; }
+  if (card.length > 64)          { err.textContent = 'الرقم طويل جداً.'; return false; }
+  if (/[<>"'&]/.test(card))      { err.textContent = 'رموز غير مسموح بها.'; return false; }
   return true;
 }
 
-/* ════════════════════════════
-   معالج إرسال النموذج
-════════════════════════════ */
 function handleLogin(e) {
   e.preventDefault();
-
-  /* فحص Rate Limit أولاً */
-  if (typeof window.rateLimitCheck === 'function') {
-    if (!window.rateLimitCheck()) return false;
-  }
-
-  var rawCard = document.getElementById('cardNumber').value;
-  var rawPass = (document.getElementById('cardPassword') || {}).value || '';
-  var card    = sanitize(rawCard);
-  var pass    = rawPass ? sanitize(rawPass) : '';
-
+  if (typeof window.rateLimitCheck === 'function' && !window.rateLimitCheck()) return false;
+  var card = sanitize(document.getElementById('cardNumber').value);
+  var pass = sanitize(((document.getElementById('cardPassword')||{}).value)||'');
   if (!validateCard(card)) return false;
-
-  /* حفظ الكرت في LocalStorage */
   saveCard(card);
-
-  /* تعيين الحقول المخفية */
   document.getElementById('hiddenUsername').value = card;
-  if (typeof calcMD5 === 'function' && pass) {
-    document.getElementById('hiddenPassword').value = calcMD5(pass);
-  } else {
-    document.getElementById('hiddenPassword').value = pass;
-  }
-
-  /* حالة التحميل */
+  document.getElementById('hiddenPassword').value = (typeof calcMD5==='function'&&pass) ? calcMD5(pass) : pass;
   var btn = document.getElementById('connectBtn');
-  btn.classList.add('loading');
-  btn.disabled = true;
-
-  e.target.submit();
-  return false;
+  btn.classList.add('loading'); btn.disabled = true;
+  e.target.submit(); return false;
 }
 
-/* ════════════════════════════════
-   إدارة الكروت السابقة (LocalStorage)
-════════════════════════════════ */
-function getSavedCards() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  } catch (e) { return []; }
-}
-
-function saveCard(card) {
-  try {
-    var cards = getSavedCards().filter(function(c){ return c !== card; });
-    cards.unshift(card);           /* أضفه في البداية */
-    if (cards.length > MAX_SAVED) cards = cards.slice(0, MAX_SAVED);
-    localStorage.setItem(LS_KEY, JSON.stringify(cards));
-  } catch (e) { /* LocalStorage غير متاح */ }
-}
-
-function removeCard(card) {
-  try {
-    var cards = getSavedCards().filter(function(c){ return c !== card; });
-    localStorage.setItem(LS_KEY, JSON.stringify(cards));
-    renderPrevCards();
-  } catch(e) {}
-}
+function getSavedCards() { try { return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); } catch(e){ return []; } }
+function saveCard(c) { try { var a=getSavedCards().filter(function(x){return x!==c;}); a.unshift(c); if(a.length>MAX_SAVED)a=a.slice(0,MAX_SAVED); localStorage.setItem(LS_KEY,JSON.stringify(a)); } catch(e){} }
+function removeCard(c) { try { localStorage.setItem(LS_KEY,JSON.stringify(getSavedCards().filter(function(x){return x!==c;}))); renderPrevCards(); } catch(e){} }
 
 function renderPrevCards() {
-  var list  = document.getElementById('prevCardsList');
-  var empty = document.getElementById('prevCardsEmpty');
-  if (!list) return;
-  var cards = getSavedCards();
-  list.innerHTML = '';
-  if (!cards.length) {
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-  cards.forEach(function(card) {
-    var li = document.createElement('li');
-    li.className = 'prev-card-item';
-    li.setAttribute('role','option');
-
-    /* زر اختيار الكرت */
-    var selectBtn = document.createElement('button');
-    selectBtn.type = 'button';
-    selectBtn.className = 'prev-card-select';
-    selectBtn.textContent = card;
-    selectBtn.setAttribute('aria-label', 'اختيار الكرت ' + card);
-    selectBtn.addEventListener('click', function(){
-      document.getElementById('cardNumber').value = card;
-      closePrevCards();
-      document.getElementById('cardNumber').focus();
-    });
-
-    /* زر حذف الكرت */
-    var delBtn = document.createElement('button');
-    delBtn.type = 'button';
-    delBtn.className = 'prev-card-del';
-    delBtn.setAttribute('aria-label', 'حذف الكرت ' + card);
-    delBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-    delBtn.addEventListener('click', function(ev){
-      ev.stopPropagation();
-      removeCard(card);
-    });
-
-    li.appendChild(selectBtn);
-    li.appendChild(delBtn);
-    list.appendChild(li);
+  var list=document.getElementById('prevCardsList'), empty=document.getElementById('prevCardsEmpty');
+  if(!list) return;
+  var cards=getSavedCards(); list.innerHTML='';
+  if(!cards.length){ empty.style.display='block'; return; }
+  empty.style.display='none';
+  cards.forEach(function(card){
+    var li=document.createElement('li'); li.className='fp-prev-item';
+    var s=document.createElement('button'); s.type='button'; s.className='fp-prev-select'; s.textContent=card;
+    s.addEventListener('click',function(){ document.getElementById('cardNumber').value=card; closePrevCards(); document.getElementById('cardNumber').focus(); });
+    var d=document.createElement('button'); d.type='button'; d.className='fp-prev-del'; d.setAttribute('aria-label','حذف');
+    d.innerHTML='<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    d.addEventListener('click',function(ev){ ev.stopPropagation(); removeCard(card); });
+    li.appendChild(s); li.appendChild(d); list.appendChild(li);
   });
 }
 
 function togglePrevCards() {
-  var dropdown = document.getElementById('prevCardsDropdown');
-  var btn      = document.getElementById('prevCardsBtn');
-  var isOpen   = !dropdown.hidden;
-  if (isOpen) {
-    closePrevCards();
-  } else {
-    renderPrevCards();
-    dropdown.hidden = false;
-    btn.setAttribute('aria-expanded','true');
-    btn.classList.add('is-open');
-    /* إخفاء إذا لم تكن هناك كروت */
-    if (!getSavedCards().length) {
-      document.getElementById('prevCardsEmpty').style.display = 'block';
-    }
-  }
+  var dd=document.getElementById('prevCardsDropdown'), btn=document.getElementById('prevCardsBtn');
+  if(!dd.hidden){ closePrevCards(); return; }
+  renderPrevCards(); dd.hidden=false; btn.setAttribute('aria-expanded','true'); btn.classList.add('is-open');
 }
-
 function closePrevCards() {
-  var dropdown = document.getElementById('prevCardsDropdown');
-  var btn      = document.getElementById('prevCardsBtn');
-  dropdown.hidden = true;
-  btn.setAttribute('aria-expanded','false');
-  btn.classList.remove('is-open');
+  var dd=document.getElementById('prevCardsDropdown'), btn=document.getElementById('prevCardsBtn');
+  dd.hidden=true; btn.setAttribute('aria-expanded','false'); btn.classList.remove('is-open');
 }
-
 function refreshPrevCards() {
   renderPrevCards();
-  /* تأثير دوران أيقونة التحديث */
-  var refreshBtn = document.querySelector('.prev-cards-refresh');
-  if (refreshBtn) {
-    refreshBtn.classList.add('spinning');
-    setTimeout(function(){ refreshBtn.classList.remove('spinning'); }, 600);
-  }
+  var r=document.querySelector('.fp-prev-refresh'); if(r){ r.classList.add('spinning'); setTimeout(function(){r.classList.remove('spinning');},600); }
 }
 
-/* إغلاق القائمة عند النقر خارجها */
-document.addEventListener('click', function(e) {
-  var toggle = document.getElementById('prevCardsToggle');
-  if (toggle && !toggle.contains(e.target)) {
+document.addEventListener('click',function(e){
+  var t=document.getElementById('prevCardsToggle');
+  if(t&&!t.contains(e.target)) closePrevCards();
+});
+
+function openModal(id){ var m=document.getElementById(id); if(!m)return; m.hidden=false; m.removeAttribute('hidden'); document.body.classList.add('modal-open'); var c=m.querySelector('.modal-close'); if(c)setTimeout(function(){c.focus();},60); }
+function closeModal(id){ var m=document.getElementById(id); if(!m)return; m.hidden=true; document.body.classList.remove('modal-open'); }
+
+document.querySelectorAll('.modal-backdrop').forEach(function(m){
+  m.addEventListener('click',function(e){ if(e.target===m) closeModal(m.id); });
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-backdrop:not([hidden])').forEach(function(m){closeModal(m.id);});
     closePrevCards();
   }
 });
 
-/* ════════════════════════════════
-   النوافذ المنبثقة — Modals
-════════════════════════════════ */
-function openModal(id) {
-  var modal = document.getElementById(id);
-  if (!modal) return;
-  modal.hidden = false;
-  modal.removeAttribute('hidden');
-  document.body.classList.add('modal-open');
-  /* تركيز على زر الإغلاق لإمكانية الوصول */
-  var closeBtn = modal.querySelector('.modal-close');
-  if (closeBtn) setTimeout(function(){ closeBtn.focus(); }, 60);
-}
+(function(){ var p=new URLSearchParams(window.location.search), err=p.get('error'); if(err){ var b=document.getElementById('errorBanner'),t=document.getElementById('errorText'); if(b)b.style.display='flex'; if(t)t.textContent=decodeURIComponent(err.replace(/\+/g,' ')); } })();
 
-function closeModal(id) {
-  var modal = document.getElementById(id);
-  if (!modal) return;
-  modal.hidden = true;
-  document.body.classList.remove('modal-open');
-}
-
-/* إغلاق بالنقر على الخلفية */
-document.querySelectorAll('.modal-backdrop').forEach(function(modal){
-  modal.addEventListener('click', function(e){
-    if (e.target === modal) closeModal(modal.id);
-  });
-});
-
-/* إغلاق بـ Escape */
-document.addEventListener('keydown', function(e){
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-backdrop:not([hidden])').forEach(function(m){
-      closeModal(m.id);
-    });
-    closePrevCards();
-  }
-});
-
-/* ════════════════════════════
-   فحص الخطأ من MikroTik / URL
-════════════════════════════ */
-(function checkError() {
-  var params = new URLSearchParams(window.location.search);
-  var errMsg = params.get('error');
-  if (errMsg) {
-    var banner  = document.getElementById('errorBanner');
-    var errText = document.getElementById('errorText');
-    if (banner) banner.style.display = 'flex';
-    if (errText) errText.textContent = decodeURIComponent(errMsg.replace(/\+/g,' '));
-  }
-})();
-
-/* ════════════════════════════════
-   اتجاه حقل الكرت (RTL للأرقام)
-════════════════════════════════ */
-(function fixCardDir() {
-  var inp = document.getElementById('cardNumber');
-  if (!inp) return;
-  inp.addEventListener('input', function(){
-    var isNum = /^\d+$/.test(this.value);
-    this.style.direction = isNum ? 'ltr' : 'rtl';
-    this.style.textAlign = isNum ? 'left' : 'right';
-  });
-})();
-
-/* ═══════════════════════════════
-   إخفاء خيار "كرت سابق" إذا لا
-   توجد كروت محفوظة عند التحميل
-═══════════════════════════════ */
-(function initPrevCardsBtn() {
-  /* نُظهر الزر دائماً — سيُعرض "لا يوجد" إذا كانت فارغة */
-})();
+(function(){ var i=document.getElementById('cardNumber'); if(!i)return; i.addEventListener('input',function(){ var n=/^\d+$/.test(this.value); this.style.direction=n?'ltr':'rtl'; this.style.textAlign=n?'left':'right'; }); })();
 </script>
 
 </body>
