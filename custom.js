@@ -6,12 +6,13 @@
  *  تسلسل الأنيميشن (مطابق للفيديو):
  *  ──────────────────────────────────────────────
  *  ث 0 → 4.0 : الفيديو يعمل، الفورم مخفي تماماً
- *  ث 4.0      : الحقول تبزغ من نقطة الحقيبة
- *               scale(0.04) → scale(0.35) — 500ms
- *  ث 4.5      : تواصل الصعود والتكبر
- *               scale(0.35) → scale(0.65) — 600ms
- *  ث 5.1      : تصل حجمها النهائي scale(1) — 700ms
- *  ث 7 → 9   : الرجل يتكئ، الفورم ثابت تماماً
+ *  ث 4.0      : 1) يظهر ظل الحقيبة فوراً (briefcase-shadow)
+ *               2) بعد تأخير قصير (BRIEFCASE_TO_RISE_DELAY)
+ *                  تبدأ الحقول حركة ارتفاع/تكبر واحدة سلسة
+ *                  ومتصلة من نقطة الحقيبة إلى الموضع النهائي
+ *  ث 5.5      : الحقول في موضعها وحجمها النهائي تماماً
+ *  ث 7 → 9   : الرجل يتكئ، الفورم ثابت
+ *  بعد SHADOW_FADE_DELAY: يتلاشى ظل الحقيبة تدريجياً
  *  عند ended  : الفيديو يتجمد على آخر إطار
  * ════════════════════════════════════════════════════════════════
  */
@@ -22,16 +23,31 @@
      الإعدادات — عدّل FORM_START_SEC ليطابق فيديوك
   ════════════════════════════════════════════ */
   var CFG = {
-    /* الثانية التي تبدأ عندها المرحلة الأولى (بزوغ من الحقيبة) */
-    FORM_START_SEC  : 4.0,
+    /* الثانية التي تبدأ عندها الحركة (بزوغ من الحقيبة) */
+    FORM_START_SEC : 4.0,
 
-    /* مدة كل مرحلة بالميلي ثانية */
-    PHASE1_DURATION : 500,   /* scale 0.04 → 0.35 */
-    PHASE2_DURATION : 600,   /* scale 0.35 → 0.65 */
-    PHASE3_DURATION : 700,   /* scale 0.65 → 1.00 */
+    /*
+     * تأخير صغير بين ظهور الظل وبدء ارتفاع الحقول
+     * لإعطاء إحساس أن الحقول "خرجت" من الحقيبة فعلياً
+     */
+    BRIEFCASE_TO_RISE_DELAY : 120,
+
+    /*
+     * مدة حركة "الطيران والاستقرار" الكاملة بالميلي ثانية
+     * يجب أن تطابق مدة @keyframes riseAndLand في style.css
+     * (سرعة متوسطة = 2600ms / 2.6 ثانية)
+     */
+    RISE_DURATION : 2600,
+
+    /*
+     * تأخير بدء تلاشي ظل الحقيبة (من بداية startSequence)
+     * مضبوط ليبدأ التلاشي مع اقتراب الحقول من الهبوط والاستقرار
+     * (حوالي 88% من RISE_DURATION + BRIEFCASE_TO_RISE_DELAY)
+     */
+    SHADOW_FADE_DELAY : 2300,
 
     /* مهلة احتياطية كاملة إذا فشل الفيديو */
-    FALLBACK_MS     : 6500,
+    FALLBACK_MS : 6500,
 
     /* حماية Brute Force */
     MAX_ATTEMPTS    : 5,
@@ -44,43 +60,48 @@
   ════════════════════════════════════════════ */
   var video   = document.getElementById('bgVideo');
   var popup   = document.getElementById('formPopup');
-  var phase   = 0;  /* 0=مخفي، 1=phase1، 2=phase2، 3=final */
+  var shadow  = document.getElementById('briefcaseShadow');
+  var started = false;
 
   /* ════════════════════════════════════════════
-     2. دوال تقدم مراحل الأنيميشن
+     2. تشغيل تسلسل الأنيميشن الكامل
   ════════════════════════════════════════════ */
-  function runPhase1() {
-    if (phase >= 1 || !popup) return;
-    phase = 1;
-    /* إزالة الكلاسات القديمة وإضافة phase1 */
-    popup.classList.remove('anim-phase2', 'anim-final');
-    popup.classList.add('anim-phase1');
+  function startSequence() {
+    if (started) return;
+    started = true;
 
-    /* بعد PHASE1_DURATION → phase2 */
-    setTimeout(runPhase2, CFG.PHASE1_DURATION);
-  }
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function runPhase2() {
-    if (phase >= 2 || !popup) return;
-    phase = 2;
-    popup.classList.remove('anim-phase1', 'anim-final');
-    popup.classList.add('anim-phase2');
-
-    /* بعد PHASE2_DURATION → final */
-    setTimeout(runFinal, CFG.PHASE2_DURATION);
-  }
-
-  function runFinal() {
-    if (phase >= 3 || !popup) return;
-    phase = 3;
-    popup.classList.remove('anim-phase1', 'anim-phase2');
-    popup.classList.add('anim-final');
-
-    /* تركيز على حقل الكرت بعد اكتمال الأنيميشن */
-    setTimeout(function () {
+    if (reduceMotion) {
+      /* بلا حركة: أظهر الفورم فوراً وتجاهل ظل الحقيبة */
+      if (popup) popup.classList.add('anim-rise');
       var inp = document.getElementById('cardNumber');
       if (inp) inp.focus();
-    }, CFG.PHASE3_DURATION + 50);
+      return;
+    }
+
+    /* الخطوة 1: إظهار ظل الحقيبة فوراً */
+    if (shadow) shadow.classList.add('is-visible');
+
+    /* الخطوة 2: بعد تأخير قصير — ارتفاع الحقول دفعة واحدة وبسلاسة */
+    setTimeout(function () {
+      if (popup) popup.classList.add('anim-rise');
+
+      /* تركيز على حقل الكرت بعد اكتمال الحركة */
+      setTimeout(function () {
+        var inp2 = document.getElementById('cardNumber');
+        if (inp2) inp2.focus();
+      }, CFG.RISE_DURATION + 80);
+
+    }, CFG.BRIEFCASE_TO_RISE_DELAY);
+
+    /* الخطوة 3: تلاشي ظل الحقيبة تدريجياً بعد ظهور الحقول */
+    setTimeout(function () {
+      if (shadow) {
+        shadow.classList.remove('is-visible');
+        shadow.classList.add('is-fading');
+      }
+    }, CFG.SHADOW_FADE_DELAY);
   }
 
   /* ════════════════════════════════════════════
@@ -89,10 +110,17 @@
 
   /* المؤقت الاحتياطي — يعمل دائماً على كل الأجهزة */
   var fallbackTimer = setTimeout(function () {
-    if (phase === 0) runPhase1();
+    startSequence();
   }, CFG.FALLBACK_MS);
 
   if (video) {
+
+    /*
+     * تأكيد عدم التكرار — الفيديو يجب أن يعمل مرة واحدة فقط
+     * ثم يتجمد على آخر إطار ولا يعود للبداية أبداً
+     */
+    video.loop = false;
+    video.removeAttribute('loop');
 
     /* إخفاء الفيديو حتى يكون جاهزاً لتجنب الوميض */
     video.style.opacity = '0';
@@ -108,27 +136,45 @@
 
     /*
      * timeupdate — يُطلَق كل ~250ms
-     * نراقب الثانية 4.0 لبدء الأنيميشن
+     * نراقب الثانية المحددة لبدء تسلسل الأنيميشن
      */
     video.addEventListener('timeupdate', function () {
-      if (phase === 0 && video.currentTime >= CFG.FORM_START_SEC) {
+      if (!started && video.currentTime >= CFG.FORM_START_SEC) {
         clearTimeout(fallbackTimer);
-        runPhase1();
+        startSequence();
       }
     });
 
     /*
-     * ended — تجميد الفيديو على آخر إطار
-     * نرجع frame بسيط قبل النهاية لتجنب الشاشة السوداء
+     * ended — تجميد الفيديو على آخر إطار نهائياً
+     * ───────────────────────────────────────────
+     * 1) نرجع خطوتين بسيطتين قبل النهاية (لتجنب الإطار
+     *    الأسود الذي يظهر أحياناً عند currentTime === duration)
+     * 2) نوقف التشغيل فوراً
+     * 3) "قفل تجميد" دائم: أي محاولة لاحقة لتشغيل الفيديو
+     *    (مثلاً تركيز المستخدم على التبويب من جديد) تُرفض
+     *    ويُعاد إيقافه فوراً عند نفس الإطار الأخير
      */
+    var FREEZE_LOCK = false;
+
     video.addEventListener('ended', function () {
-      /* تجميد على آخر إطار */
+      FREEZE_LOCK = true;
       if (video.duration && isFinite(video.duration)) {
         video.currentTime = video.duration - 0.06;
       }
       video.pause();
-      /* إكمال الأنيميشن إذا لم يكتمل */
-      if (phase < 3) runFinal();
+      /* إكمال الأنيميشن إذا لم يبدأ بعد */
+      if (!started) startSequence();
+    });
+
+    /* بعد إتمام أي seek (مثل التجميد أعلاه) — تأكد من البقاء متوقفاً */
+    video.addEventListener('seeked', function () {
+      if (FREEZE_LOCK) video.pause();
+    });
+
+    /* لو حاول المتصفح إعادة التشغيل تلقائياً بعد التجميد — أوقفه فوراً */
+    video.addEventListener('play', function () {
+      if (FREEZE_LOCK) video.pause();
     });
 
     /*
@@ -136,7 +182,7 @@
      */
     video.addEventListener('error', function () {
       clearTimeout(fallbackTimer);
-      if (phase === 0) runPhase1();
+      startSequence();
     });
 
     /*
@@ -147,14 +193,14 @@
       playPromise.catch(function () {
         /* autoplay ممنوع — أظهر الفورم فوراً */
         clearTimeout(fallbackTimer);
-        if (phase === 0) runPhase1();
+        startSequence();
       });
     }
 
   } else {
     /* لا يوجد فيديو — اختبار محلي */
     clearTimeout(fallbackTimer);
-    setTimeout(runPhase1, 400);
+    setTimeout(startSequence, 400);
   }
 
   /* ════════════════════════════════════════════

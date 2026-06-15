@@ -149,6 +149,16 @@ body::before {
   z-index: 10;
   width: 100%;
   /*
+   * تحديد أقصى عرض للمسرح على الشاشات الكبيرة
+   * هذا يقلّل الارتفاع الكلي تلقائياً (لأن padding-bottom
+   * نسبة من العرض) دون تغيير نسبة القص (object-fit:cover)
+   * أي أن كل المواضع المحسوبة (form-anchor, transform-origin,
+   * briefcase-shadow) تبقى صحيحة تماماً — فقط المسرح يصبح أصغر
+   * على الشاشات العريضة جداً
+   */
+  max-width: 1080px;
+  margin: 0 auto;
+  /*
    * نسبة 16:9 عبر padding-bottom — هذا يجعل الارتفاع
    * يتغير مع العرض ويحافظ على النسبة في كل الأجهزة
    */
@@ -180,122 +190,154 @@ body::before {
 }
 
 /* ══════════════════════════════════════════════════
+   ظل الحقيبة — briefcase-shadow
+   ══════════════════════════════════════════════════
+   ظل بيضاوي خفيف يظهر في مكان الحقيبة بالضبط
+   (x≈55%, y≈78%) في اللحظة التي تبدأ الحقول
+   بالبزوغ، ثم يتلاشى تدريجياً
+══════════════════════════════════════════════════ */
+.briefcase-shadow {
+  position: absolute;
+  left: 55%;
+  top: 78%;
+  width: 14%;
+  height: 5%;
+  transform: translate(-50%, -50%) scale(0.6);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.18) 50%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 1.1s ease, transform 1.1s ease;
+}
+
+.briefcase-shadow.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.briefcase-shadow.is-fading {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.25);
+  /* تلاشي سريع نسبياً يبدأ مباشرة عند إضافة الكلاس
+     (التوقيت يُضبط من custom.js عبر SHADOW_FADE_DELAY) */
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+
+/* ══════════════════════════════════════════════════
    حاوية تموضع الفورم — form-anchor
    ══════════════════════════════════════════════════
-   تحليل الفيديو:
-   • الحقيبة: x≈55%, y≈78% من أعلى الفيديو
-   • الموضع النهائي للفورم (الإطارات 5-7):
-     - يبدأ من x≈28% (من اليسار)
-     - ينتهي عند x≈82%
-     - العرض ≈ 54% من عرض الفيديو
-     - المنتصف الرأسي ≈ 52% من ارتفاع الفيديو
-     - الحافة السفلية ≈ 87% من أعلى الفيديو
-   • نقطة الأصل (origin) للأنيميشن = موضع الحقيبة (55%, 78%)
+   تحليل دقيق من لقطات الفيديو:
+   • الرجل يقف في الثلث الأيسر، رأسه عند y≈42%، كتفه عند y≈52%
+   • الحقيبة الأصلية: x≈55%, y≈78%
+   • في اللقطة النهائية تظهر الحقول مقابل كتف/جذع الرجل
+     لا مقابل الرأس، وزر التسجيل في الأسفل قريباً من يد الرجل
 
-   النهج: نضع form-anchor بموضع نهائي ثابت
-   وداخله form-popup يبدأ صغيراً من نقطة الحقيبة ثم يكبر
+   الموضع الجديد المُصحَّح:
+   - يبدأ من x≈34% (بعيداً عن الرأس، مقابل الكتف فأسفل)
+   - ينتهي عند x≈88%
+   - من الأعلى: y≈46% (مستوى الكتف، تحت الرأس)
+   - إلى الأسفل: y≈86% (مستوى يد الرجل المتكئة)
 ══════════════════════════════════════════════════ */
 .form-anchor {
   position: absolute;
   z-index: 10;
-  /*
-   * الموضع النهائي مضبوط بنسب مئوية من أبعاد الـ video-stage
-   * المسافة من اليسار: 28% (مع الحذر من جسم الرجل على اليسار)
-   * المسافة من الأعلى: 15%
-   * العرض: 56% من عرض الـ stage
-   * الحافة السفلية: 13% من الأسفل (≈87% من الأعلى)
-   */
-  left: 28%;
-  top:  14%;
-  width: 56%;
-  bottom: 12%;
-  /* نجعل الحاوية شفافة لاختبار التموضع */
+  left: 34%;
+  top: 46%;
+  width: 54%;
+  height: 40%;
   pointer-events: none;
 }
 
 /* ──────────────────────────────────────────────────
    form-popup: العنصر الذي يحمل الأنيميشن
    ──────────────────────────────────────────────────
-   يملأ form-anchor كاملاً في الحالة النهائية
-   لكنه يبدأ من نقطة الحقيبة (أسفل-وسط الـ anchor)
+   transform-origin محسوبة من موضع الحقيبة بالنسبة
+   لحدود form-anchor الجديدة:
+     x: (55-34)/54 * 100  ≈ 39%
+     y: (78-46)/40 * 100  ≈ 80%
    ────────────────────────────────────────────────── */
 .form-popup {
   position: absolute;
   inset: 0;
   pointer-events: none;
 
-  /*
-   * الحالة الابتدائية: مخفي، صغير جداً (scale 0.04)
-   * نقطة التحويل (transform-origin) = موضع الحقيبة
-   * بالنسبة لـ form-anchor:
-   *   x: الحقيبة عند 55% من عرض الفيديو
-   *      form-anchor يبدأ عند 28%
-   *      الحقيبة داخل anchor = (55-28)/56 * 100 = 48%
-   *   y: الحقيبة عند 78% من الارتفاع
-   *      form-anchor: top=14%, bottom=12% → height=74%
-   *      الحقيبة داخل anchor = (78-14)/74 * 100 = 86%
-   */
-  transform-origin: 48% 90%;
+  transform-origin: 39% 80%;
   opacity: 0;
-  transform: scale(0.04) translateY(0px);
-  /* لا transition في الحالة الابتدائية */
+  transform: scale(0.05) translateY(4%);
+  filter: blur(2px);
+  /* لا transition في الحالة الابتدائية — القفزة الأولى فورية */
 }
 
 /*
- * المرحلة 1: الخروج من الحقيبة والارتفاع (0→1 ثانية)
- * scale صغير جداً → متوسط
+ * ════════════════════════════════════════════════════════════════
+ * حركة "الطيران والاستقرار" — riseAndLand
+ * ════════════════════════════════════════════════════════════════
+ * الحقول تخرج من نقطة الحقيبة (transform-origin) بحجم صغير جداً،
+ * ترتفع نحو أعلى المسرح وتكبر تدريجياً، تصل قرب القمة بحجم
+ * أكبر قليلاً من الحجم النهائي (overshoot)، ثم تهبط وتستقر
+ * تماماً في الموضع والحجم المحددين في .form-anchor
+ *
+ * translateY هنا نسبة من ارتفاع العنصر نفسه (= ارتفاع form-anchor)
+ * فكلما كان form-anchor أقصر، احتجنا نسبة أكبر للوصول لأعلى المسرح
+ *
+ * سرعة "متوسطة" = 2.6 ثانية إجمالاً (انظر CFG.RISE_DURATION في custom.js)
+ * لتعديل ارتفاع نقطة "أعلى المسرح"، عدّل قيم translateY عند 50% و62%
+ * (كلما كبرت القيمة سالباً، ارتفعت الحقول أكثر نحو الأعلى)
+ * ════════════════════════════════════════════════════════════════
  */
-.form-popup.anim-phase1 {
-  opacity: 0.7;
-  transform: scale(0.35) translateY(-5%);
-  transition:
-    opacity   0.5s var(--ease),
-    transform 0.5s var(--ease);
+@keyframes riseAndLand {
+  0%   { opacity: 0;    transform: scale(0.05) translateY(0%);    filter: blur(3px); }
+  10%  { opacity: 0.55; transform: scale(0.16) translateY(-12%);  filter: blur(2px); }
+  30%  { opacity: 1;    transform: scale(0.55) translateY(-120%); filter: blur(0.4px); }
+  50%  { opacity: 1;    transform: scale(0.96) translateY(-205%); filter: blur(0); }
+  62%  { opacity: 1;    transform: scale(1.07) translateY(-215%); filter: blur(0); }
+  85%  { opacity: 1;    transform: scale(0.97) translateY(-22%);  filter: blur(0); }
+  100% { opacity: 1;    transform: scale(1)    translateY(0%);    filter: blur(0); }
 }
 
 /*
- * المرحلة 2: الكبر والصعود (1→2 ثانية)
+ * تشغيل الحركة — مدة وسرعة "متوسطة" واضحة للعين
+ * easing: ease-in-out مع لمسة overshoot داخل الـ keyframes نفسها
  */
-.form-popup.anim-phase2 {
-  opacity: 0.85;
-  transform: scale(0.65) translateY(-12%);
-  transition:
-    opacity   0.6s var(--ease),
-    transform 0.6s var(--ease);
+.form-popup.anim-rise {
+  animation: riseAndLand 2.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+  pointer-events: auto;
 }
 
-/*
- * المرحلة 3: الموضع والحجم النهائي (2→3 ثانية)
- * scale(1) = الحجم الكامل، يشغل form-anchor بالكامل
- */
+/* مراحل وسيطة اختيارية — تبقى لتوافق الإعدادات القديمة
+   لكنها الآن غير مستخدمة في التسلسل الافتراضي */
+.form-popup.anim-phase1,
+.form-popup.anim-phase2,
 .form-popup.anim-final {
   opacity: 1;
   transform: scale(1) translateY(0);
+  filter: blur(0px);
   pointer-events: auto;
   transition:
-    opacity   0.7s var(--ease-spring),
-    transform 0.7s var(--ease-spring);
+    opacity   1.0s cubic-bezier(0.34, 1.10, 0.40, 1),
+    transform 1.35s cubic-bezier(0.22, 1.05, 0.36, 1),
+    filter    0.7s ease;
 }
 
 /* ──────────────────────────────────────────────────
    محتوى الفورم داخل form-popup
-   يملأ المساحة المتاحة ويُحاكي حجم النموذج في الفيديو
+   ──────────────────────────────────────────────────
+   بلا حاوية/صندوق ظاهر — كل عنصر منفصل وشفاف
+   ليبدو جزءاً من الفيديو لا غطاءً عليه
    ────────────────────────────────────────────────── */
 .form-popup form {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  justify-content: center;
-  /* خلفية شفافة جداً — الفورم يجب أن يبدو كأنه جزء من الفيديو */
-  background: rgba(8, 18, 38, 0.72);
-  backdrop-filter: blur(10px) saturate(1.2);
-  -webkit-backdrop-filter: blur(10px) saturate(1.2);
-  border-radius: clamp(6px, 2vw, 14px);
-  border: 1px solid rgba(59,155,255,0.22);
-  padding: clamp(8px, 2.5%, 18px);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.50), 0 0 0 1px rgba(59,155,255,0.10);
+  justify-content: space-between;
+  gap: clamp(6px, 2%, 14px);
+  /* بلا خلفية، بلا حدود، بلا ظل — شفاف بالكامل */
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 /* شريط الخطأ داخل الفورم */
@@ -316,7 +358,7 @@ body::before {
 }
 
 /* ── حقل الكرت ── */
-.fp-field { margin-bottom: clamp(4px, 1.2%, 10px); }
+.fp-field { margin-bottom: 0; }
 
 .fp-input-wrap {
   position: relative; display: flex; align-items: center;
@@ -332,108 +374,129 @@ body::before {
 
 .fp-input-wrap input {
   width: 100%;
-  /* الارتفاع نسبي من عرض الـ stage لتناسب الشاشات */
-  height: clamp(28px, 7%, 44px);
+  /*
+   * ارتفاع موحّد مع زر "دخول بكرت سابق" (.fp-prev-btn) وزر
+   * "تسجيل الدخول" (.fp-submit) — الثلاثة يستخدمون نفس القيمة
+   * بالضبط. زيادة طفيفة عن السابق (كان ~28px) دون التسبب
+   * بتجاوز ارتفاع form-anchor (height:20%)
+   * لو أردت تغيير الحجم، عدّل هذه القيمة وعدّل المطابقة
+   * تماماً في .fp-prev-btn و.fp-submit بالأسفل
+   */
+  height: clamp(30px, 3.6vw, 44px);
   padding: 0 clamp(28px,8vw,42px) 0 clamp(8px,2vw,12px);
-  background: rgba(4, 12, 28, 0.80);
-  border: 1.5px solid rgba(59,155,255,0.28);
-  border-radius: clamp(4px,1.5vw,10px);
+  /* خلفية شبه شفافة فقط للحقل نفسه — يبدو كعنصر مستقل عائم */
+  background: rgba(6, 15, 32, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(59,155,255,0.30);
+  border-radius: clamp(6px,1.8vw,12px);
   color: var(--az-white);
   font-family: var(--font);
   font-size: clamp(0.62rem, 1.8vw, 0.92rem);
   outline: none; direction: rtl;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.30);
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
 }
-.fp-input-wrap input::placeholder { color: rgba(128,153,192,0.48); }
+.fp-input-wrap input::placeholder { color: rgba(220,232,250,0.65); }
 .fp-input-wrap input:focus {
   border-color: var(--az-accent);
-  box-shadow: 0 0 0 2px rgba(59,155,255,0.16);
+  background: rgba(6, 15, 32, 0.85);
+  box-shadow: 0 0 0 2px rgba(59,155,255,0.18), 0 4px 18px rgba(0,0,0,0.30);
 }
 .fp-input-wrap:has(input:focus) .fp-icon { color: var(--az-accent); }
 
 .fp-error {
   display: block; font-size: clamp(0.55rem,1.4vw,0.75rem);
   color: #ff8899; margin-top: 2px; padding-right: 3px; min-height: 1em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
 }
 
 /* ── زر "كرت سابق" ── */
-.fp-prev-wrap { position: relative; margin-bottom: clamp(4px,1.2%,10px); }
+.fp-prev-wrap { position: relative; }
 
 .fp-prev-btn {
-  display: flex; align-items: center; gap: clamp(4px,1vw,7px);
-  background: rgba(19,87,190,0.16);
-  border: 1px solid rgba(59,155,255,0.22);
-  border-radius: clamp(4px,1.5vw,8px);
-  color: var(--az-accent);
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(4px,1vw,8px);
+  /*
+   * نفس ارتفاع حقل الكرت بالضبط (.fp-input-wrap input) وزر
+   * تسجيل الدخول (.fp-submit) — إن غيّرت القيمة هناك، غيّرها
+   * هنا أيضاً لتبقى الثلاثة متطابقة
+   */
+  height: clamp(30px, 3.6vw, 44px);
+  background: rgba(6, 15, 32, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(59,155,255,0.26);
+  border-radius: clamp(6px,1.8vw,10px);
+  color: var(--az-glow);
   font-family: var(--font); font-size: clamp(0.58rem,1.6vw,0.80rem); font-weight: 600;
-  padding: clamp(5px,1.2%,8px) clamp(8px,2vw,12px);
-  cursor: pointer; width: 100%; text-align: right;
+  padding: 0 clamp(8px,2vw,12px);
+  cursor: pointer; width: 100%; text-align: center;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.28);
   transition: background var(--transition), border-color var(--transition);
 }
-.fp-prev-btn:hover { background: rgba(19,87,190,0.30); border-color: rgba(59,155,255,0.40); }
-.fp-prev-btn svg  { width: clamp(11px,2vw,15px); height: clamp(11px,2vw,15px); flex-shrink: 0; }
-.fp-chevron { margin-right: auto; transition: transform var(--transition); }
+.fp-prev-btn:hover { background: rgba(19,87,190,0.35); border-color: rgba(59,155,255,0.45); }
+.fp-chevron { width: clamp(10px,1.8vw,14px); height: clamp(10px,1.8vw,14px); flex-shrink: 0; transition: transform var(--transition); }
+.fp-chevron--mirror { transform: scaleX(-1); }
 .fp-prev-btn.is-open .fp-chevron { transform: rotate(180deg); }
+.fp-prev-btn.is-open .fp-chevron--mirror { transform: scaleX(-1) rotate(180deg); }
 
-/* قائمة الكروت السابقة */
+/* قائمة الكروت السابقة — تطابق الستايل المرجعي:
+   صندوق أبيض شفاف صغير يظهر تحت الزر مباشرة */
 .fp-prev-dropdown {
-  position: absolute; top: calc(100% + 3px);
+  position: absolute; top: calc(100% + 4px);
   right: 0; left: 0; z-index: 100;
-  background: rgba(9,24,50,0.97);
-  border: 1px solid rgba(59,155,255,0.22);
-  border-radius: clamp(6px,2vw,12px);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.65);
+  background: rgba(255,255,255,0.97);
+  border-radius: clamp(6px,1.8vw,10px);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.45);
   overflow: hidden;
-  animation: dropIn 0.20s var(--ease-spring);
+  padding: clamp(4px,1.2%,8px) 0;
+  animation: dropIn 0.22s cubic-bezier(0.22,1,0.36,1);
 }
 @keyframes dropIn { from{opacity:0;transform:translateY(-6px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
-.fp-prev-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: clamp(5px,1.5%,9px) clamp(8px,2.5%,13px);
-  border-bottom: 1px solid rgba(59,155,255,0.09);
-  font-size: clamp(0.58rem,1.5vw,0.74rem); font-weight: 700; color: var(--az-muted);
-}
-.fp-prev-refresh {
-  background: transparent; border: none; cursor: pointer;
-  color: var(--az-accent); padding: 3px; display: flex; border-radius: 50%;
-  transition: background var(--transition);
-}
-.fp-prev-refresh:hover { background: rgba(59,155,255,0.12); }
-.fp-prev-refresh svg  { width: clamp(11px,2vw,14px); height: clamp(11px,2vw,14px); }
-.fp-prev-refresh.spinning svg { animation: spinOnce 0.6s ease; }
-@keyframes spinOnce { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-#prevCardsList { list-style: none; max-height: clamp(80px,20vw,160px); overflow-y: auto; }
-.fp-prev-item { display: flex; align-items: center; border-bottom: 1px solid rgba(59,155,255,0.06); }
-.fp-prev-item:last-child { border-bottom: none; }
+#prevCardsList { list-style: none; max-height: clamp(80px,22vw,170px); overflow-y: auto; }
+.fp-prev-item { display: flex; align-items: center; }
 
 .fp-prev-select {
   flex: 1; background: transparent; border: none;
-  color: var(--az-white); font-family: var(--font);
-  font-size: clamp(0.62rem,1.7vw,0.86rem);
-  padding: clamp(7px,2%,11px) clamp(8px,2.5%,13px);
-  text-align: right; cursor: pointer;
+  color: #163a66; font-family: var(--font);
+  font-size: clamp(0.62rem,1.7vw,0.86rem); font-weight: 600;
+  padding: clamp(5px,1.6%,9px) clamp(10px,2.5%,14px);
+  text-align: center; cursor: pointer;
   transition: background var(--transition), color var(--transition);
 }
-.fp-prev-select:hover { background: rgba(59,155,255,0.10); color: var(--az-accent); }
+.fp-prev-select:hover { background: rgba(59,155,255,0.12); color: var(--az-blue); }
 
 .fp-prev-del {
-  background: transparent; border: none; color: rgba(128,153,192,0.40);
-  padding: 6px 10px; cursor: pointer; display: flex; align-items: center;
+  background: transparent; border: none; color: rgba(22,58,102,0.35);
+  padding: 4px 10px; cursor: pointer; display: flex; align-items: center;
   transition: color var(--transition);
 }
 .fp-prev-del:hover { color: var(--az-danger); }
 .fp-prev-del svg  { width: 12px; height: 12px; }
-.fp-prev-empty   { padding: 12px; text-align: center; font-size: 0.78rem; color: var(--az-muted); }
+.fp-prev-empty   { padding: 10px; text-align: center; font-size: 0.78rem; color: #5a7aa8; }
+
+.fp-prev-refresh-link {
+  display: block; width: 100%; text-align: center;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--az-blue); font-family: var(--font); font-weight: 700;
+  font-size: clamp(0.62rem,1.6vw,0.85rem);
+  padding: clamp(5px,1.4%,8px) 0;
+  border-top: 1px solid rgba(19,87,190,0.12);
+  margin-top: clamp(2px,0.6%,4px);
+  transition: color var(--transition), background var(--transition);
+}
+.fp-prev-refresh-link:hover { background: rgba(59,155,255,0.08); color: var(--az-accent); }
+.fp-prev-refresh-link.spinning { opacity: 0.55; }
 
 /* ── زر تسجيل الدخول ── */
 .fp-submit {
   display: flex; align-items: center; justify-content: center;
   gap: clamp(6px,1.5vw,9px);
   width: 100%;
-  height: clamp(28px, 7.5%, 46px);
+  /* نفس ارتفاع حقل الكرت وزر "كرت سابق" للتناسق البصري */
+  height: clamp(30px, 3.6vw, 44px);
   padding: 0 clamp(10px,3vw,18px);
   background: linear-gradient(135deg, var(--az-blue) 0%, var(--az-accent) 100%);
   color: #fff; font-family: var(--font);
@@ -594,41 +657,63 @@ body::before {
 .modal-body       { padding: 20px 24px 28px; }
 .modal-note       { margin-top: 16px; font-size: 0.8rem; color: var(--az-muted); text-align: center; line-height: 1.6; }
 
-.price-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-.price-card {
-  background: rgba(5,14,31,0.55); border: 1px solid rgba(59,155,255,0.14);
-  border-radius: var(--radius-md); padding: 16px 10px 14px;
-  text-align: center; position: relative;
-  transition: border-color var(--transition), transform var(--transition);
-}
-.price-card:hover { border-color: rgba(59,155,255,0.35); transform: translateY(-2px); }
-.price-card--featured { border-color: rgba(245,158,11,0.40); background: rgba(245,158,11,0.06); }
-.price-badge {
-  position: absolute; top: -8px; right: 10px;
-  background: var(--az-accent); color: #fff;
-  font-size: 0.63rem; font-weight: 700; padding: 2px 8px; border-radius: 99px;
-}
-.price-badge--gold { background: var(--az-warn); color: #1a0a00; }
-.price-duration { font-size: 0.82rem; color: var(--az-muted); margin-bottom: 6px; margin-top: 4px; }
-.price-amount   { font-size: 0.88rem; font-weight: 700; color: var(--az-success); margin-bottom: 8px; }
-.price-features { list-style: none; font-size: 0.73rem; color: var(--az-muted); display: flex; flex-direction: column; gap: 3px; }
+/* ── جدول الأسعار ── */
+.price-table-wrap { overflow-x: auto; border-radius: var(--radius-md); }
 
-.help-steps { list-style: none; display: flex; flex-direction: column; gap: 14px; }
-.help-steps li { display: flex; gap: 12px; align-items: flex-start; }
-.step-num {
-  flex-shrink: 0; width: 28px; height: 28px; background: var(--az-blue); color: #fff;
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 0.78rem; font-weight: 700; margin-top: 2px;
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: center;
+  background: rgba(5,14,31,0.45);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
-.help-steps li strong { font-size: 0.88rem; display: block; margin-bottom: 3px; }
-.help-steps li p     { font-size: 0.8rem; color: var(--az-muted); line-height: 1.5; }
-.help-tip {
-  display: flex; gap: 10px; align-items: flex-start;
-  background: rgba(59,155,255,0.08); border: 1px solid rgba(59,155,255,0.18);
-  border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 16px;
+.price-table thead th {
+  background: linear-gradient(135deg, var(--az-blue) 0%, var(--az-accent) 100%);
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 8px;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
-.help-tip svg { width: 16px; height: 16px; color: var(--az-accent); flex-shrink: 0; margin-top: 2px; }
-.help-tip p   { font-size: 0.8rem; color: var(--az-muted); line-height: 1.6; }
+.price-table tbody td {
+  padding: 9px 8px;
+  border-bottom: 1px solid rgba(59,155,255,0.10);
+  color: var(--az-white);
+  white-space: nowrap;
+}
+.price-table tbody tr:last-child td { border-bottom: none; }
+.price-table tbody tr:nth-child(even) { background: rgba(19,87,190,0.07); }
+.price-table tbody tr:hover { background: rgba(59,155,255,0.12); }
+.price-table tbody td:first-child { font-weight: 700; color: var(--az-glow); }
+
+@media (max-width: 380px) {
+  .price-table { font-size: 0.74rem; }
+  .price-table thead th, .price-table tbody td { padding: 7px 4px; }
+}
+
+/* ── محتوى التعليمات ── */
+.help-text { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.help-text p {
+  font-size: 0.84rem; color: var(--az-white); line-height: 1.8;
+  text-align: right;
+}
+
+.help-apps-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.help-apps-list li {
+  background: rgba(59,155,255,0.08);
+  border: 1px solid rgba(59,155,255,0.16);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  color: var(--az-glow);
+  text-align: center;
+  font-weight: 600;
+}
 
 body.modal-open { overflow: hidden; }
 
@@ -814,7 +899,7 @@ body:not(.page-login) {
   .modal-header, .modal-body { padding-left: 14px; padding-right: 14px; }
   .stats-grid { grid-template-columns: 1fr; }
   .advert-grid { grid-template-columns: 1fr; }
-  .price-grid  { grid-template-columns: 1fr; }
+  .price-table { font-size: 0.7rem; }
   .action-row  { flex-direction: column; }
   .action-row > * { min-width: unset; }
 }
